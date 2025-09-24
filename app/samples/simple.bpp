@@ -1,0 +1,5 @@
+SUGOD
+    IPAKITA: "escape characters: " & [&] & []] & [t] & [&] & [[]
+    -- expected output below
+    -- escape characters: &]    &[
+KATAPUSAN
