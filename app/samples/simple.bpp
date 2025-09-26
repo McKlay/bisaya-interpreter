@@ -1,5 +1,12 @@
+-- this is a sample program in Bisaya++
 SUGOD
-    IPAKITA: "escape characters: " & [&] & []] & [t] & [&] & [[]
-    -- expected output below
-    -- escape characters: &]    &[
+  MUGNA NUMERO x, y, z=5
+  MUGNA LETRA a_1='n'
+  MUGNA TINUOD t="DILI"
+  x=y=clay=69
+  a_1='c'
+-- this is a comment
+  IPAKITA: x & t & z & $ & a_1 & [[] & "last" & $
+  IPAKITA: y & $ & clay
 KATAPUSAN
+-- this is a sample program in Bisaya++
