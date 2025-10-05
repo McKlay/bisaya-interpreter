@@ -3,56 +3,101 @@ package com.bisayapp;
 import java.util.*;
 
 public class Lexer {
+  // Source code string and token collection
   private final String src;
   private final List<Token> tokens = new ArrayList<>();
+  
+  // Position tracking: start/current for current token, line/col for error reporting
   private int start = 0, current = 0, line = 1, col = 1;
 
+  // Keyword mapping: Bisaya keywords to their token types
   private static final Map<String, TokenType> KEYWORDS = new HashMap<>();
   static {
-    // Core structure
-    KEYWORDS.put("SUGOD", TokenType.SUGOD);
-    KEYWORDS.put("KATAPUSAN", TokenType.KATAPUSAN);
+    // Core structure keywords
+    KEYWORDS.put("SUGOD", TokenType.SUGOD);       // START/BEGIN
+    KEYWORDS.put("KATAPUSAN", TokenType.KATAPUSAN); // END
 
-    // I/O
-    KEYWORDS.put("IPAKITA", TokenType.IPAKITA);
-    KEYWORDS.put("DAWAT", TokenType.DAWAT);
+    // I/O operations
+    KEYWORDS.put("IPAKITA", TokenType.IPAKITA);   // PRINT/SHOW
+    KEYWORDS.put("DAWAT", TokenType.DAWAT);       // INPUT/RECEIVE
 
-    // Decls & types
-    KEYWORDS.put("MUGNA", TokenType.MUGNA);
-    KEYWORDS.put("NUMERO", TokenType.NUMERO);
-    KEYWORDS.put("LETRA", TokenType.LETRA);
-    KEYWORDS.put("TINUOD", TokenType.TINUOD);
-    KEYWORDS.put("TIPIK", TokenType.TIPIK);
+    // Variable declarations and data types
+    KEYWORDS.put("MUGNA", TokenType.MUGNA);       // CREATE/DECLARE
+    KEYWORDS.put("NUMERO", TokenType.NUMERO);     // NUMBER type
+    KEYWORDS.put("LETRA", TokenType.LETRA);       // LETTER/CHARACTER type
+    KEYWORDS.put("TINUOD", TokenType.TINUOD);     // BOOLEAN type
+    KEYWORDS.put("TIPIK", TokenType.TIPIK);       // STRING type
 
-    // Control & logic per spec
-    KEYWORDS.put("KUNG", TokenType.KUNG);
-    KEYWORDS.put("WALA", TokenType.WALA);
-    KEYWORDS.put("DILI", TokenType.DILI);
-    KEYWORDS.put("UG", TokenType.UG);
-    KEYWORDS.put("O", TokenType.O);
-    KEYWORDS.put("PUNDOK", TokenType.PUNDOK);
+    // Control flow and logical operators
+    KEYWORDS.put("KUNG", TokenType.KUNG);         // IF
+    KEYWORDS.put("WALA", TokenType.WALA);         // ELSE/NOTHING
+    KEYWORDS.put("DILI", TokenType.DILI);         // NOT
+    KEYWORDS.put("UG", TokenType.UG);             // AND
+    KEYWORDS.put("O", TokenType.O);               // OR
+    KEYWORDS.put("PUNDOK", TokenType.PUNDOK);     // GROUP/BLOCK
   }
 
+  /**
+   * Constructor - Initialize lexer with source code
+   * @param source The Bisaya++ source code string to tokenize
+   */
   public Lexer(String source) { this.src = source; }
 
+  /**
+   * MAIN TOKENIZATION DRIVER
+   * 
+   * Scans the entire source code string and produces a list of tokens.
+   * This is the primary entry point for lexical analysis.
+   * 
+   * Algorithm:
+   * 1. Loop until end of source is reached
+   * 2. Mark start of each token, then call scanToken()
+   * 3. Add EOF token at the end for parser convenience
+   * 
+   * @return Complete list of tokens including final EOF token
+   * 
+   * Usage: Called by Parser or CLI to begin lexical analysis
+   */
   public List<Token> scanTokens() {
     while (!isAtEnd()) {
-      start = current;
+      start = current;  // Mark start of next token
       scanToken();
     }
+    // Add EOF token to mark end of input
     tokens.add(new Token(TokenType.EOF, "", null, line, col));
     return tokens;
   }
 
-  // --- core scanning ---
+  /**
+   * CORE TOKEN SCANNER - State machine for character-by-character processing
+   * 
+   * Reads one character via advance() and determines what type of token to create
+   * based on that character. Handles both single-character tokens (like '+', '(')
+   * and multi-character tokens (like '==', '<=', '--', escape sequences).
+   * 
+   * Key responsibilities:
+   * - Dispatch to specialized handlers for complex tokens (strings, numbers, identifiers)
+   * - Handle multi-character operators using lookahead (match() function)
+   * - Process special Bisaya++ syntax like [escape] sequences
+   * - Manage position tracking (line/column numbers)
+   * 
+   * Side effects:
+   * - Updates current position and possibly line/col counters
+   * - Adds tokens to the tokens list
+   * - May call ErrorReporter for invalid characters
+   * 
+   * Called by: scanTokens() repeatedly until end of source
+   */
   private void scanToken() {
     char c = advance();
     switch (c) {
+      // Single-character tokens
       case '(' -> add(TokenType.LEFT_PAREN);
       case ')' -> add(TokenType.RIGHT_PAREN);
       case '{' -> add(TokenType.LEFT_BRACE);
       case '}' -> add(TokenType.RIGHT_BRACE);
       case '[' -> {
+        // Special handling for escape sequences and literal brackets
         if (match('[')) {
           // [[ is escape for literal [, need to consume the closing ]
           if (match(']')) {
@@ -61,7 +106,7 @@ public class Lexer {
             ErrorReporter.error(line, col, "Expected ']' after '[['.");
           }
         } else {
-          escapeCode();
+          escapeCode();  // Handle escape sequences like [n], [t], etc.
         }
       }
       case ']' -> add(TokenType.RIGHT_BRACKET);
@@ -69,52 +114,163 @@ public class Lexer {
       case '.' -> add(TokenType.DOT);
       case ':' -> add(TokenType.COLON);
       case ';' -> add(TokenType.SEMICOLON);
+      
+      // Arithmetic operators
       case '+' -> add(TokenType.PLUS);
       case '-' -> {
+        // Handle line comments (--) or minus operator
         if (match('-')) lineComment(); else add(TokenType.MINUS);
       }
       case '*' -> add(TokenType.STAR);
       case '/' -> add(TokenType.SLASH);
       case '%' -> add(TokenType.PERCENT);
+      
+      // Special symbols
       case '&' -> add(TokenType.AMPERSAND);
       case '$' -> add(TokenType.DOLLAR);
+      
+      // Comparison operators - supports lookahead for multi-character operators
       case '!' -> add(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
       case '=' -> add(match('=') ? TokenType.EQUAL_EQUAL : TokenType.EQUAL);
       case '<' -> {
-        if (match('>')) add(TokenType.LT_GT);
+        if (match('>')) add(TokenType.LT_GT);       // <> not equal
         else add(match('=') ? TokenType.LESS_EQUAL : TokenType.LESS);
       }
       case '>' -> add(match('=') ? TokenType.GREATER_EQUAL : TokenType.GREATER);
+      
+      // String and character literals
       case '"' -> string();
       case '\'' -> character();
+      
+      // Whitespace handling
       case ' ', '\r', '\t' -> {} // ignore whitespace
-      case '\n' -> { line++; col = 0; }
+      case '\n' -> { 
+        add(TokenType.NEWLINE);  // generate newline token
+        line++; 
+        col = 0; 
+      }
+      
       default -> {
+        // Numbers, identifiers, or error
         if (isDigit(c)) number();
         else if (isAlpha(c)) identifier();
         else ErrorReporter.error(line, col, "Unexpected character: " + c);
       }
     }
-    col++;
+    col++;  // Track column position
   }
 
-  // --- helpers ---
+  // ============================================================================
+  // POSITION AND CHARACTER UTILITIES
+  // ============================================================================
+
+  /**
+   * Check if we've reached the end of the source code
+   * @return true if no more characters to scan, false otherwise
+   */
   private boolean isAtEnd() { return current >= src.length(); }
+
+  /**
+   * CONSUME NEXT CHARACTER
+   * 
+   * Returns the character at the current position and advances the scanner.
+   * This is the primary way characters are consumed during tokenization.
+   * 
+   * @return The character at the current position
+   * 
+   * Side effects: Increments current position by 1
+   * 
+   * Usage: Called whenever we need to consume a character we know we want
+   */
   private char advance() { return src.charAt(current++); }
+  
+  /**
+   * CONDITIONAL CHARACTER CONSUMPTION - Lookahead for multi-character tokens
+   * 
+   * Checks if the current character matches expected. If yes, consumes it and returns true.
+   * If no, leaves the scanner position unchanged and returns false.
+   * 
+   * @param expected The character we're looking for
+   * @return true if character matched and consumed, false otherwise
+   * 
+   * Usage: Building multi-character operators like '==', '<=', '--', '<>'
+   * Essential for distinguishing '=' from '==' or '-' from '--'
+   */
   private boolean match(char expected) {
     if (isAtEnd()) return false;
     if (src.charAt(current) != expected) return false;
     current++; return true;
   }
+
+  /**
+   * SAFE LOOKAHEAD - Examine current character without consuming it
+   * 
+   * @return Current character, or '\0' if at end of source
+   * 
+   * Usage: Safe for loops that scan until a terminator (strings, numbers, identifiers)
+   */
   private char peek() { return isAtEnd() ? '\0' : src.charAt(current); }
 
+  /**
+   * TOKEN CREATION HELPER
+   * 
+   * Creates a token from the current lexeme (substring from start to current position)
+   * and adds it to the tokens list with position information.
+   * 
+   * @param type The TokenType for this token
+   * 
+   * Side effects: Adds token to tokens list using current start/current positions
+   * 
+   * Usage: Called by simple single-character token cases
+   */
   private void add(TokenType type) {
     String text = src.substring(start, current);
     tokens.add(new Token(type, text, null, line, col));
   }
 
+  /**
+   * COMMENT PROCESSOR - Consume line comment until newline
+   * 
+   * Handles '--' style comments by consuming all characters until end of line.
+   * Does not generate any tokens (comments are ignored in Bisaya++).
+   * 
+   * Side effects: Advances current position to end of line
+   * 
+   * Usage: Called when scanToken() encounters '--' sequence
+   */
   private void lineComment() { while (!isAtEnd() && peek() != '\n') advance(); }
 
+  // ============================================================================
+  // SPECIALIZED TOKEN HANDLERS
+  // ============================================================================
+
+  /**
+   * ESCAPE SEQUENCE PROCESSOR - Handle [code] patterns
+   * 
+   * Processes Bisaya++ escape sequences enclosed in square brackets.
+   * Maps escape codes to their actual character values and creates STRING tokens.
+   * 
+   * Supported escape codes:
+   * - [&] -> literal ampersand
+   * - [n] -> newline character
+   * - [t] -> tab character  
+   * - ["] -> literal double quote
+   * - ['] -> literal single quote
+   * - [[] -> literal left bracket
+   * - []] -> literal right bracket (special case handled separately)
+   * - [] -> empty string
+   * 
+   * Special cases:
+   * - []] is detected by lookahead and handled before general processing
+   * - Unknown codes generate error and produce empty string
+   * 
+   * @precondition Opening '[' has been consumed by scanToken()
+   * 
+   * Side effects: 
+   * - Consumes characters until ']'
+   * - Adds STRING token with escape sequence as lexeme and translated value
+   * - May call ErrorReporter for invalid sequences
+   */
   private void escapeCode() {
     // Already consumed the '['
     // Special case: if we see ']' followed by ']', it's []]
@@ -125,7 +281,7 @@ public class Lexer {
       return;
     }
     
-    // Read until ']'
+    // Read escape code content until ']'
     StringBuilder sb = new StringBuilder();
     while (!isAtEnd() && peek() != ']') {
       sb.append(advance());
@@ -137,31 +293,55 @@ public class Lexer {
     advance(); // consume the ']'
     
     String code = sb.toString();
+    // Map escape codes to actual characters
     String escaped = switch (code) {
-      case "&" -> "&";
-      case "n" -> "\n";
-      case "t" -> "\t";
-      case "\"" -> "\"";
-      case "'" -> "'";
-      case "[" -> "[";
-      case "]" -> "]";
-      case "" -> "";  // empty escape code for []
+      case "&" -> "&";      // literal ampersand
+      case "n" -> "\n";     // newline
+      case "t" -> "\t";     // tab
+      case "\"" -> "\"";    // double quote
+      case "'" -> "'";      // single quote
+      case "[" -> "[";      // literal left bracket
+      case "]" -> "]";      // literal right bracket
+      case "" -> "";        // empty escape code for []
       default -> {
         ErrorReporter.error(line, col, "Unknown escape code: [" + code + "]");
         yield "";
       }
     };
     
-    // Create a string token with the escaped character
+    // Create string token with escaped value
     String lexeme = "[" + code + "]";
     tokens.add(new Token(TokenType.STRING, lexeme, escaped, line, col));
   }
 
+  /**
+   * STRING LITERAL PROCESSOR - Parse double-quoted strings
+   * 
+   * Handles string literals enclosed in double quotes, supporting multi-line strings.
+   * Collects all characters until closing quote and creates STRING token with
+   * both the original lexeme and the parsed string value.
+   * 
+   * Features:
+   * - Multi-line support (tracks line numbers within strings)
+   * - Raw character collection (no escape processing inside strings)
+   * - Proper error reporting for unterminated strings
+   * 
+   * Note: Escape sequences like [n] are NOT processed inside double-quoted strings.
+   * They are only processed when [ appears as a standalone token.
+   * 
+   * @precondition Opening '"' has been consumed by scanToken()
+   * 
+   * Side effects:
+   * - Consumes characters until closing '"'
+   * - Updates line/col counters for embedded newlines
+   * - Adds STRING token with full lexeme and parsed content
+   * - Calls ErrorReporter if string is not terminated
+   */
   private void string() {
     StringBuilder sb = new StringBuilder();
     while (!isAtEnd() && peek() != '"') {
       char ch = advance();
-      if (ch == '\n') { line++; col = 0; }
+      if (ch == '\n') { line++; col = 0; }  // track newlines in strings
       sb.append(ch);
     }
     if (isAtEnd()) ErrorReporter.error(line, col, "Unterminated string.");
@@ -169,33 +349,133 @@ public class Lexer {
     tokens.add(new Token(TokenType.STRING, src.substring(start, current), sb.toString(), line, col));
   }
 
+  /**
+   * CHARACTER LITERAL PROCESSOR - Parse single-quoted characters
+   * 
+   * Handles character literals like 'a', 'Z', '1' enclosed in single quotes.
+   * Validates that exactly one character exists between the quotes.
+   * 
+   * Validation:
+   * - Must have exactly one character between quotes
+   * - Cannot contain newlines
+   * - Must be properly terminated with closing quote
+   * 
+   * @precondition Opening "'" has been consumed by scanToken()
+   * 
+   * Side effects:
+   * - Consumes the character and closing quote
+   * - Adds CHAR token with lexeme and character value
+   * - Calls ErrorReporter for malformed character literals
+   */
   private void character() {
-    // Simple char literal: 'x'
     if (isAtEnd() || peek() == '\n') ErrorReporter.error(line, col, "Unterminated char.");
     char value = advance();
     if (isAtEnd() || advance() != '\'') ErrorReporter.error(line, col, "Invalid char literal.");
     tokens.add(new Token(TokenType.CHAR, src.substring(start, current), value, line, col));
   }
 
+  /**
+   * NUMERIC LITERAL PROCESSOR - Parse integer and decimal numbers
+   * 
+   * Handles numeric literals in both integer and decimal formats.
+   * Uses greedy parsing to consume all consecutive digits, optionally
+   * followed by a decimal point and fractional digits.
+   * 
+   * Supported formats:
+   * - Integers: 42, 0, 123
+   * - Decimals: 3.14, 0.5, 100.0
+   * 
+   * Parsing rules:
+   * - Requires digit before decimal point (no leading dots like .5)
+   * - Requires digit after decimal point if dot is consumed
+   * - Uses peekNext() to validate decimal point usage
+   * 
+   * Storage: All numbers stored as Double regardless of integer/decimal appearance
+   * (Parser/Interpreter must handle NUMERO vs TIPIK type distinctions)
+   * 
+   * @precondition First digit character has been detected by scanToken()
+   * 
+   * Side effects:
+   * - Consumes all consecutive digits and optional decimal portion
+   * - Adds NUMBER token with lexeme and parsed Double value
+   */
   private void number() {
     while (isDigit(peek())) advance();
     // Optional fractional part
     if (peek() == '.' && isDigit(peekNext())) {
-      advance(); while (isDigit(peek())) advance();
+      advance(); // consume the '.'
+      while (isDigit(peek())) advance();
     }
     String text = src.substring(start, current);
     tokens.add(new Token(TokenType.NUMBER, text, Double.parseDouble(text), line, col));
   }
+  
+  /**
+   * TWO-CHARACTER LOOKAHEAD UTILITY
+   * 
+   * Examines the character after the current position without consuming it.
+   * Used for multi-character pattern detection like decimal points and escape sequences.
+   * 
+   * @return Character at current+1 position, or '\0' if beyond end of source
+   * 
+   * Usage: Validating patterns like "1.5" (ensuring digit after dot)
+   */
   private char peekNext() { return (current + 1 >= src.length()) ? '\0' : src.charAt(current + 1); }
 
+  /**
+   * IDENTIFIER AND KEYWORD PROCESSOR
+   * 
+   * Handles identifiers (variable names) and reserved keywords.
+   * Uses greedy parsing to consume all alphanumeric characters, then
+   * checks against KEYWORDS map to determine final token type.
+   * 
+   * Identifier rules (Bisaya++):
+   * - Start with letter or underscore
+   * - Continue with letters, underscores, or digits
+   * - Case-sensitive
+   * 
+   * Keyword detection:
+   * - All keywords are uppercase (MUGNA, NUMERO, etc.)
+   * - Lowercase versions treated as identifiers
+   * - Uses HashMap lookup for O(1) keyword recognition
+   * 
+   * @precondition First alphabetic character detected by scanToken()
+   * 
+   * Side effects:
+   * - Consumes all consecutive alphanumeric characters
+   * - Adds token with either keyword TokenType or IDENTIFIER
+   * - Token value is null (lexeme contains the text)
+   */
   private void identifier() {
     while (isAlphaNum(peek())) advance();
     String text = src.substring(start, current);
+    // Check if identifier is a reserved keyword, default to IDENTIFIER
     TokenType type = KEYWORDS.getOrDefault(text, TokenType.IDENTIFIER);
     tokens.add(new Token(type, text, null, line, col));
   }
 
+  // ============================================================================
+  // CHARACTER CLASSIFICATION UTILITIES
+  // ============================================================================
+
+  /**
+   * Digit character test - checks if character is 0-9
+   * @param c Character to test
+   * @return true if c is a decimal digit
+   */
   private boolean isDigit(char c) { return c >= '0' && c <= '9'; }
+
+  /**
+   * Alphabetic character test - letters or underscore
+   * @param c Character to test  
+   * @return true if c is letter (including Unicode) or underscore
+   */
   private boolean isAlpha(char c) { return Character.isLetter(c) || c == '_'; }
+
+  /**
+   * Alphanumeric character test - combination of isAlpha and isDigit
+   * @param c Character to test
+   * @return true if c is letter, underscore, or digit
+   */
   private boolean isAlphaNum(char c) { return isAlpha(c) || isDigit(c); }
 }

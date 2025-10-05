@@ -23,5 +23,7 @@ public enum TokenType {
   NUMERO, LETRA, TINUOD, TIPIK,
   KUNG, WALA, DILI, UG, O, PUNDOK,
 
+  // Special tokens
+  NEWLINE,
   EOF
 }

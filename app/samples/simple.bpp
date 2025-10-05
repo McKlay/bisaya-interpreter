@@ -1,12 +1,11 @@
 -- this is a sample program in Bisaya++
 SUGOD
-  MUGNA NUMERO x, y, z=5
-  MUGNA LETRA a_1='n'
-  MUGNA TINUOD t="DILI"
-  x=y=clay=69
-  a_1='c'
+MUGNA NUMERO x, y, z=5
+MUGNA LETRA a_1='n'
+MUGNA TINUOD t="OO"
+x=y=4
+a_1='c'
 -- this is a comment
-  IPAKITA: x & t & z & $ & a_1 & [[] & "last" & $
-  IPAKITA: y & $ & clay
+IPAKITA: x & t & z & $ & a_1 & [&] & "last
+time"
 KATAPUSAN
--- this is a sample program in Bisaya++

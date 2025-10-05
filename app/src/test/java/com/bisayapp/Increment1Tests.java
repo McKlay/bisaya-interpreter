@@ -99,7 +99,7 @@ public class Increment1Tests {
     void bracketEscapes_exactSpec() {
         String src = """
             SUGOD
-            IPAKITA: [[ & $
+            IPAKITA: [[] & $
             IPAKITA: []]
             IPAKITA: [&]
             KATAPUSAN
@@ -136,11 +136,18 @@ public class Increment1Tests {
         assertEquals("DILI\nOO", runSource(src));
     }
 
-    // ---- Integration: real sample file ------------------------------------
+    // ---- Integration: real sample files ------------------------------------
     @Test
     void sampleHelloFile_runsEndToEnd() throws Exception {
-        // Adjust if your sample path differs:
-        String out = runFile("app/samples/hello.bpp");
+        // Test hello.bpp sample
+        String out = runFile("samples/hello.bpp");
         assertEquals("Hi, Bisaya++\nBisaya++ Interpreter", out);
+    }
+
+    @Test
+    void specificationSampleFile_runsEndToEnd() throws Exception {
+        // Test the specification sample program (simple.bpp)
+        String out = runFile("samples/simple.bpp");
+        assertEquals("4OO5\nc&last", out);
     }
 }
