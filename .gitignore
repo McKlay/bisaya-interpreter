@@ -3,7 +3,7 @@
 
 # Ignore Gradle build output directory
 build
-hs_err_pid34852.log
+hs_err_pid*.log
 
 # Exclude the VS Code workspace file for this project
 bisaya-interpreter.code-workspace
