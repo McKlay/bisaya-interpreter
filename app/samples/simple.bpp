@@ -6,6 +6,5 @@ MUGNA TINUOD t="OO"
 x=y=4
 a_1='c'
 -- this is a comment
-IPAKITA: x & t & z & $ & a_1 & [&] & "last
-time"
+IPAKITA: x & t & z & $ & a_1 & [&] & "last"
 KATAPUSAN

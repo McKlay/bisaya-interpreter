@@ -12,7 +12,7 @@ public class InterpreterPrintTest {
         var stmts = new Parser(tokens).parseProgram();
         var out = new ByteArrayOutputStream();
         var ps = new PrintStream(out);
-        var interp = new Interpreter(ps); // or however your Interpreter takes output
+        var interp = new Interpreter(ps);
         interp.interpret(stmts);
         return out.toString().replace("\r\n","\n");
     }
@@ -35,7 +35,7 @@ public class InterpreterPrintTest {
         """;
         String out = run(src).trim();
         // Expected (from spec): "4OO5" then new line "c&last"
-        // Your runtime may print without extra spaces:
+        // Runtime may print without extra spaces:
         assertEquals("4OO5\nc&last", out);
     }
 

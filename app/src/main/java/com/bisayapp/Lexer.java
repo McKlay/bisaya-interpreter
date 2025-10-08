@@ -293,21 +293,19 @@ public class Lexer {
     advance(); // consume the ']'
     
     String code = sb.toString();
-    // Map escape codes to actual characters
-    String escaped = switch (code) {
-      case "&" -> "&";      // literal ampersand
-      case "n" -> "\n";     // newline
-      case "t" -> "\t";     // tab
-      case "\"" -> "\"";    // double quote
-      case "'" -> "'";      // single quote
-      case "[" -> "[";      // literal left bracket
-      case "]" -> "]";      // literal right bracket
-      case "" -> "";        // empty escape code for []
+    // TODO: Fixed - Only allow specific escape sequences as per specification
+    String escaped;
+    switch (code) {
+      case "&" -> escaped = "&";      // literal ampersand
+      case "[" -> escaped = "[";      // literal left bracket  
+      case "]" -> escaped = "]";      // literal right bracket
+      case "" -> escaped = "";        // empty escape code for []
       default -> {
-        ErrorReporter.error(line, col, "Unknown escape code: [" + code + "]");
-        yield "";
+        // For Increment 1, only [[, ]], and [&] are allowed per specification
+        ErrorReporter.error(line, col, "Invalid escape sequence: [" + code + "]. Only [[, ]], and [&] are supported.");
+        return; // Don't create a token for invalid sequences
       }
-    };
+    }
     
     // Create string token with escaped value
     String lexeme = "[" + code + "]";
@@ -368,9 +366,21 @@ public class Lexer {
    * - Calls ErrorReporter for malformed character literals
    */
   private void character() {
-    if (isAtEnd() || peek() == '\n') ErrorReporter.error(line, col, "Unterminated char.");
+    // TODO: Fixed - Better detection of unclosed character literals
+    if (isAtEnd() || peek() == '\n') {
+      ErrorReporter.error(line, col, "Unterminated character literal - missing closing quote.");
+      return;
+    }
     char value = advance();
-    if (isAtEnd() || advance() != '\'') ErrorReporter.error(line, col, "Invalid char literal.");
+    if (isAtEnd()) {
+      ErrorReporter.error(line, col, "Unterminated character literal - missing closing quote.");
+      return;
+    }
+    if (peek() != '\'') {
+      ErrorReporter.error(line, col, "Invalid character literal - expected closing quote after character.");
+      return;
+    }
+    advance(); // consume the closing '
     tokens.add(new Token(TokenType.CHAR, src.substring(start, current), value, line, col));
   }
 

@@ -5,7 +5,7 @@ Build a fully functional interpreter that can parse, analyze, and execute Bisaya
 
 **Implementation Requirements:**
 
-**Increment 1 (Due: October 11, 2025)**
+**Increment 1**
 Core language recognition and basic operations:
 - Parse program structure (SUGOD/KATAPUSAN keywords)
 - Handle comments (-- prefix) correctly
@@ -16,7 +16,7 @@ Core language recognition and basic operations:
 - Execute IPAKITA command for output display
 - Handle escape sequences with square brackets []
 
-**Increment 2 (Due: October 18, 2025)**
+**Increment 2**
 Operators and input functionality:
 - Implement unary operators: +, -, ++, --
 - Add DAWAT command for user input (comma-separated values)
@@ -25,7 +25,7 @@ Operators and input functionality:
 - Support logical operations: UG (AND), O (OR), DILI (NOT)
 - Handle boolean literals: "OO" (true), "DILI" (false)
 
-**Increment 3 (Due: November 8, 2025)**
+**Increment 3**
 Conditional control structures:
 - Implement KUNG (if) statements with PUNDOK{} blocks
 - Execute KUNG-KUNG WALA (if-else) statements
@@ -33,7 +33,7 @@ Conditional control structures:
 - Handle nested conditional structures
 - Ensure proper boolean expression evaluation
 
-**Increment 4 (Due: November 15, 2025)**
+**Increment 4**
 Loop implementation:
 - Execute WHILE loops (syntax to be clarified based on specification)
 - Support nested WHILE loops
@@ -110,8 +110,7 @@ c&last
 **Program Structure:**
 - all codes are placed inside SUGOD and KATAPUSAN
 - all variable declaration starts with MUGNA
-- all variable names are case sensitive and starts with letter or an underscore (_) and followed by a letter,
-underscore or digits.
+- all variable names are case sensitive and starts with letter or an underscore (_) and followed by a letter, underscore or digits.
 - every line contains a single statement
 - comments starts with double minus sign(--) and it can be placed anywhere in the program
 - all reserved words are in capital letters and cannot be used as variable names
@@ -162,7 +161,7 @@ Output of the sample program:
 2. A program with logical operation
 SUGOD
     MUGNA NUMERO a=100, b=200, c=300
-    MUGNA TINUOD d=”DILI”
+    MUGNA TINUOD d="DILI"
     d = (a < b UG c <>200)
     IPAKITA: d
 KATAPUSAN
@@ -242,4 +241,5 @@ OO
         }
         Output:
         1 2 3 4 5 6 7 8 9 10
-        
+
+Note: Additional features may be added as needed, but the core requirements must be met as specified.

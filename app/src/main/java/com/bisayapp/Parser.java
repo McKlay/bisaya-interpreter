@@ -144,10 +144,18 @@ public class Parser {
             TokenType.NUMERO, TokenType.LETRA, TokenType.TINUOD, TokenType.TIPIK);
 
         List<Stmt.VarDecl.Item> items = new ArrayList<>();
+        List<String> declaredNames = new ArrayList<>(); // TODO: Fixed - Track declared names in this statement
         
         // Parse comma-separated list of variable declarations
         do {
             String name = consume(TokenType.IDENTIFIER, "Expect variable name.").lexeme;
+            
+            // TODO: Fixed - Check for duplicate declaration in same statement
+            if (declaredNames.contains(name)) {
+                throw error(previous(), "Cannot declare variable '" + name + "' twice in the same statement.");
+            }
+            declaredNames.add(name);
+            
             Expr init = null;
             
             // Optional initializer with = expression
