@@ -4,7 +4,7 @@
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
-║                BISAYA++ INTERPRETER - INCREMENT 1             ║
+║                BISAYA++ INTERPRETER - INCREMENT 1            ║
 ║                    TEST SUITE RESULTS                        ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Total Tests:        62                                      ║
