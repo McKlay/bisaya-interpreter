@@ -1,6 +1,6 @@
 # Increment 1 Test Coverage - Quick Reference
 
-## 📊 Test Results
+## Test Results
 
 ```
 ╔══════════════════════════════════════════════════════════════╗
@@ -53,7 +53,7 @@ These tests document error handling to be implemented:
 6. ⚠️ **error_invalidEscapeSequence()**
    - TODO: Validate only [[, ]], [&] escape sequences allowed
 
-## 📋 Test Categories
+## Test Categories
 
 ### Positive Tests (48 tests)
 Tests that verify correct behavior:
@@ -83,7 +83,7 @@ Escape Sequence Errors ........... 1 ⚠️ (1 TODO)
 IPAKITA Syntax Errors ............ 2 ✅
 ```
 
-## 📝 Specification Compliance
+## Specification Compliance
 
 | Increment 1 Requirement | Status | Tests |
 |------------------------|--------|-------|
@@ -98,7 +98,7 @@ IPAKITA Syntax Errors ............ 2 ✅
 
 **Verdict:** ✅ **COMPLETE** - All Increment 1 features fully tested
 
-## 🎯 Quick Stats
+## Quick Stats
 
 ```
 Feature Coverage:     ████████████████████ 100%
@@ -107,14 +107,14 @@ Error Handling:       ████████████░░░░░░░�
 Integration Tests:    ████████████████████ 100%
 ```
 
-## 📂 Files Modified
+## Files Modified
 
 1. **Increment1Tests.java** - Expanded from 10 to 62 tests
 2. **increment1-test-coverage-analysis.md** - Detailed analysis
 3. **increment1-test-summary.md** - Comprehensive summary
 4. **increment1-test-quickref.md** - This quick reference
 
-## 🚀 Next Steps
+## Next Steps
 
 ### For Current Increment
 - ✅ Test suite complete
@@ -126,7 +126,7 @@ Integration Tests:    ███████████████████�
 2. Begin Increment 2 test cases
 3. Add performance/stress tests (optional)
 
-## 💡 Usage
+## Usage
 
 Run all Increment 1 tests:
 ```bash
@@ -138,7 +138,7 @@ View test report:
 app/build/reports/tests/test/index.html
 ```
 
-## 📖 Related Documentation
+## Related Documentation
 
 - `increment1-test-coverage-analysis.md` - Full analysis with recommendations
 - `increment1-test-summary.md` - Detailed summary of all additions
