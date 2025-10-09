@@ -1,53 +1,126 @@
 # Bisaya++ Lexer Technical Specification
 
+## Table of Contents
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Tokenization State Machine](#tokenization-state-machine)
+- [Core Logic](#core-logic)
+- [Token Types and Input Handling](#token-types-and-input-handling)
+- [Bisaya++ Language Specifics](#bisaya-language-specifics)
+- [Error Handling](#error-handling)
+- [Performance Characteristics](#performance-characteristics)
+- [Integration Points](#integration-points)
+- [Testing and Validation](#testing-and-validation)
+
 ## Overview
 
-The Lexer (Lexical Analyzer) is the first component of the Bisaya++ interpreter responsible for converting raw source code into a sequence of tokens. It performs lexical analysis by breaking down the input string into meaningful units called tokens, which are then consumed by the Parser.
+The **Lexer** (Lexical Analyzer) is the first component of the Bisaya++ interpreter that converts raw source code into a sequence of tokens. It performs lexical analysis by breaking down input strings into meaningful units called tokens, which are consumed by the [`Parser`](./parser-specification.md).
+
+**Key Function**: `"MUGNA NUMERO x=5"` → `[MUGNA][NUMERO][x][=][5]`
 
 ## Architecture
 
 ### Component Diagram
-```
-┌─────────────────────────────────────────────────────────┐
-│                    LEXER COMPONENT                      │
-├─────────────────────────────────────────────────────────┤
-│  Input: String source code                              │
-│  Output: List<Token>                                    │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────┐    ┌──────────────┐    ┌─────────────┐ │
-│  │   Source    │    │   Position   │    │   Token     │ │
-│  │   Tracking  │    │   Tracking   │    │   Creation  │ │
-│  │             │    │              │    │             │ │
-│  │ • src       │    │ • current    │    │ • tokens[]  │ │
-│  │ • start     │    │ • line       │    │ • add()     │ │
-│  │ • current   │    │ • col        │    │             │ │
-│  └─────────────┘    └──────────────┘    └─────────────┘ │
-│         │                   │                   │       │
-│         └───────────────────┼───────────────────┘       │
-│                             │                           │
-│                             ▼                           │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │              SCANNER STATE MACHINE               │   │
-│  │                                                  │   │
-│  │    ┌──────────┐         ┌──────────────┐         │   │
-│  │    │ Character├────────→│    Token     ├────────┐│   │
-│  │    │ Analysis │         │  Generation  │        ││   │
-│  │    │          │←────────┤              │        ││   │
-│  │    │• isDigit │         │• KEYWORDS    │        ││   │
-│  │    │• isAlpha │         │• add()       │        ││   │
-│  │    │• match() │         │• scanToken() │        ││   │
-│  │    └──────────┘         └──────────────┘        ││   │
-│  └──────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph "Lexer Component"
+        SRC[Source Code String]
+        POS[Position Tracking<br/>• start • current<br/>• line • col]
+        SCAN[Scanner State Machine]
+        TOKENS[Token List]
+        
+        SRC --> SCAN
+        POS --> SCAN
+        SCAN --> TOKENS
+    end
+    
+    subgraph "Scanner Internals"
+        CHAR[Character Analysis<br/>• isDigit<br/>• isAlpha<br/>• match]
+        GEN[Token Generation<br/>• KEYWORDS map<br/>• add method<br/>• scanToken]
+        
+        CHAR --> GEN
+        GEN --> CHAR
+    end
+    
+    SCAN --> CHAR
+    
+    EXT_IN[Raw .bpp Source] --> SRC
+    TOKENS --> EXT_OUT[List&lt;Token&gt; to Parser]
 ```
 
 ### Key Classes and Responsibilities
 
-- **Lexer**: Main lexical analyzer class
-- **Token**: Represents individual tokens with type, lexeme, value, and position
-- **TokenType**: Enumeration of all possible token types
-- **ErrorReporter**: Handles lexical errors with line/column information
+- **[`Lexer`](../app/src/main/java/com/bisayapp/Lexer.java)**: Main lexical analyzer class - state machine driver
+- **[`Token`](../app/src/main/java/com/bisayapp/Token.java)**: Individual tokens with type, lexeme, value, and position
+- **[`TokenType`](../app/src/main/java/com/bisayapp/TokenType.java)**: Enumeration of all possible token types
+- **[`ErrorReporter`](../app/src/main/java/com/bisayapp/ErrorReporter.java)**: Handles lexical errors with line/column information
+
+## Tokenization State Machine
+
+The lexer operates as a finite state machine that processes characters and transitions between states based on input patterns:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Scanning
+    
+    Scanning --> SingleChar: '(', ')', '{', '}', etc.
+    Scanning --> MultiChar: '=', '<', '>', '!', '-'
+    Scanning --> String: '"'
+    Scanning --> Character: "'"
+    Scanning --> Number: digit
+    Scanning --> Identifier: letter/underscore
+    Scanning --> Escape: '['
+    Scanning --> Comment: '--'
+    Scanning --> Whitespace: space/tab/CR
+    Scanning --> Newline: '\n'
+    Scanning --> Error: unexpected char
+    Scanning --> EOF: end of source
+    
+    SingleChar --> TokenGenerated
+    
+    MultiChar --> Lookahead: check next char
+    Lookahead --> TokenGenerated: found pattern
+    
+    String --> StringContent: collect chars
+    StringContent --> StringContent: any char except '"'
+    StringContent --> TokenGenerated: closing '"'
+    StringContent --> Error: unterminated
+    
+    Character --> CharContent: single char
+    CharContent --> TokenGenerated: closing "'"
+    CharContent --> Error: invalid/unterminated
+    
+    Number --> NumberContent: collect digits
+    NumberContent --> NumberContent: more digits
+    NumberContent --> Decimal: '.' + digit
+    Decimal --> DecimalContent: collect fractional
+    DecimalContent --> DecimalContent: more digits
+    DecimalContent --> TokenGenerated
+    NumberContent --> TokenGenerated
+    
+    Identifier --> IdentContent: collect alphanum
+    IdentContent --> IdentContent: more alphanum
+    IdentContent --> KeywordCheck: end of identifier
+    KeywordCheck --> TokenGenerated: keyword or identifier
+    
+    Escape --> EscapeContent: collect until ']'
+    EscapeContent --> EscapeContent: any char except ']'
+    EscapeContent --> EscapeMap: closing ']'
+    EscapeMap --> TokenGenerated: valid escape
+    EscapeMap --> Error: invalid escape
+    
+    Comment --> CommentContent: consume until newline
+    CommentContent --> CommentContent: any char except '\n'
+    CommentContent --> Scanning: newline reached
+    
+    Whitespace --> Scanning: ignore
+    Newline --> TokenGenerated: NEWLINE token
+    
+    TokenGenerated --> Scanning: continue
+    Error --> ErrorReport: call ErrorReporter
+    ErrorReport --> Scanning: continue or abort
+    EOF --> [*]: return tokens + EOF
+```
 
 ## Core Logic
 
@@ -200,26 +273,27 @@ string"               → [STRING:"This is\na multi-line\nstring"]
 
 ### 6. Escape Sequences
 
-**Input Pattern**: `[code]` where code is escape sequence
-**Processing**: Map to actual characters, handle special cases
+**Input Pattern**: `[code]` where code is escape sequence  
+**Processing**: Map to actual characters, handle special cases  
 **Use Cases**:
 
-```java
+```bpp
 // Special characters
-[&]                   → [STRING:"[&]"] (literal ampersand)
-[n]                   → [STRING:"[n]"] (newline \n)
-[t]                   → [STRING:"[t]"] (tab \t)
-["]                   → [STRING:"[\"]"] (literal quote)
-[']                   → [STRING:"[']"] (literal apostrophe)
-[[ ]                 → [STRING:"[[ ]"] (literal brackets)
+[&]                   → [STRING:"&"] (literal ampersand)
+[n]                   → [STRING:"\n"] (newline)
+[t]                   → [STRING:"\t"] (tab)
+["]                   → [STRING:"\""] (literal quote)
+[']                   → [STRING:"'"] (literal apostrophe)
 
 // Empty escape
-[]                    → [STRING:"[]"] (empty string)
+[]                    → [STRING:""] (empty string)
 
-// Special bracket sequences
-[[ ]                 → [STRING:"[[ ]"] (literal [)
-[]]                   → [STRING:"[]]"] (literal ])
+// Special bracket sequences  
+[[]]                  → [STRING:"["] (literal [)
+[]]                   → [STRING:"]"] (literal ])
 ```
+
+**Current Behavior Note**: Escape sequences are only processed when `[` appears as a standalone token. Inside double-quoted strings, `[n]` remains as literal characters `[n]`, not a newline.
 
 ### 7. Arithmetic Operators
 
@@ -285,13 +359,43 @@ IPAKITA: x $ y        → [IPAKITA][:][x][$][y]
 **Processing**: Consume until newline, generate no tokens  
 **Use Cases**:
 
-```java
-// Line comments (ignored)
+```bpp
 -- This is a comment
 MUGNA NUMERO x        → [MUGNA][NUMERO][x]
 
 MUGNA NUMERO y -- inline comment
                       → [MUGNA][NUMERO][y]
+```
+
+## Bisaya++ Language Specifics
+
+### Reserved Words Behavior
+- All reserved words are **uppercase** and cannot be used as identifiers
+- Case-sensitive matching: `MUGNA` is a keyword, `mugna` is an identifier
+- Keywords stored in `KEYWORDS` HashMap for O(1) lookup
+
+```bpp
+MUGNA NUMERO valid_name = 5    // ✓ Valid
+MUGNA NUMERO NUMERO = 5        // ✗ Error: NUMERO is reserved
+```
+
+### Bracket Escape System
+- `[]` escapes processed **outside** strings only
+- Inside `"..."` strings, brackets remain literal
+- Special handling for `[[]]` and `[]]` sequences
+
+```bpp
+IPAKITA: "Hello[n]World"       // Outputs: Hello[n]World
+IPAKITA: "Hello" & [n] & "World"  // Outputs: Hello\nWorld
+```
+
+### Special Operators
+- `$` produces NEWLINE token for explicit line breaks
+- `&` serves as concatenation operator
+- `--` starts line comments (consumed until `\n`)
+
+```bpp
+IPAKITA: "Line1" & $ & "Line2"  // Two-line output
 ```
 
 ### 11. Whitespace and Newlines
@@ -365,21 +469,54 @@ The lexer reports errors for:
 - **Error Reporting**: `ErrorReporter` for user feedback
 - **Position Tracking**: Line/column info for debugging
 
-## Testing Considerations
+## Testing and Validation
 
-Unit tests should cover:
-- All token types
-- Edge cases (empty strings, large numbers)
-- Error conditions
-- Multi-line constructs
-- Escape sequence variations
-- Keyword vs identifier distinction
+### Unit Test Coverage
+- **All token types**: Keywords, identifiers, numbers, strings, operators
+- **Edge cases**: Empty strings, large numbers, Unicode characters
+- **Error conditions**: Unterminated strings, invalid escapes, unexpected characters
+- **Multi-line constructs**: Strings spanning lines, comments
+- **Escape sequences**: All valid codes, bracket combinations
+- **Keyword distinction**: Case sensitivity, reserved word conflicts
+
+### Validation Commands
+```bash
+# Run lexer tests
+./gradlew test --tests "*Lexer*"
+
+# Test specific samples
+./gradlew run --args="samples/simple.bpp"
+```
+
+### Sample Test Cases
+```bpp
+-- Test file: samples/lexer-test.bpp
+SUGOD
+MUGNA NUMERO test_var = 42
+IPAKITA: "Result: " & test_var & [n]
+-- Comment with [special] characters
+KATAPUSAN
+```
+
+Expected tokens: `[SUGOD][MUGNA][NUMERO][test_var][=][42][NEWLINE][IPAKITA][:]["Result: "][&][test_var][&][STRING:"\n"][NEWLINE][KATAPUSAN][EOF]`
 
 ## Future Extensions
 
-Potential enhancements:
-- Unicode support for identifiers
-- Hexadecimal/octal number literals
-- Raw string literals
-- Nested comments
-- Custom escape sequences
+### Planned Increments
+- **Increment 2**: Input handling (`DAWAT`) and unary operators (`++`, `--`)
+- **Increment 3**: Conditional tokens (`KUNG`, `KUNG WALA`, `KUNG DILI`)  
+- **Increment 4**: Loop constructs (`ALANG SA`, `WHILE`)
+
+### Potential Enhancements
+- Unicode identifier support
+- Hexadecimal/octal number literals (`0x1A`, `0o77`)
+- Raw string literals (no escape processing)
+- Nested comment blocks
+- Custom escape sequence definitions
+
+## Cross-References
+- **Implementation**: [`app/src/main/java/com/bisayapp/Lexer.java`](../app/src/main/java/com/bisayapp/Lexer.java)
+- **Function Reference**: [`lexer-functions.md`](./lexer-functions.md)
+- **Tests**: [`app/src/test/java/com/bisayapp/LexerTest.java`](../app/src/test/java/com/bisayapp/)
+- **Sample Files**: [`samples/`](../samples/)
+- **Next Component**: [`parser-specification.md`](./parser-specification.md)

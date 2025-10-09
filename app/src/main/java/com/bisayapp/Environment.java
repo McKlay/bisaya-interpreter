@@ -37,8 +37,18 @@ public class Environment {
         if (v == null) return null;
         switch (t) {
             case NUMERO -> {
+                // TODO: Fixed - NUMERO should reject decimal values
+                if (v instanceof Double d) {
+                    if (d != d.intValue()) {
+                        throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + d);
+                    }
+                    return Integer.valueOf(d.intValue());
+                }
                 if (v instanceof Number n) return Integer.valueOf(n.intValue());
                 if (v instanceof String s && s.matches("-?\\d+")) return Integer.valueOf(s);
+                if (v instanceof String s && s.matches("-?\\d+\\.\\d+")) {
+                    throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + s);
+                }
             }
             case TIPIK -> {
                 if (v instanceof Number n) return Double.valueOf(n.doubleValue());
@@ -46,7 +56,16 @@ public class Environment {
             }
             case LETRA -> {
                 if (v instanceof Character c) return c;
-                if (v instanceof String s && s.length() >= 1) return s.charAt(0);
+                // TODO: Fixed - LETRA must be exactly 1 character
+                if (v instanceof String s) {
+                    if (s.length() == 0) {
+                        throw new RuntimeException("Type error: LETRA cannot be empty - must be exactly one character");
+                    }
+                    if (s.length() > 1) {
+                        throw new RuntimeException("Type error: LETRA can only hold one character, got: " + s);
+                    }
+                    return s.charAt(0);
+                }
             }
             case TINUOD -> {
                 // per spec: "OO" true, "DILI" false

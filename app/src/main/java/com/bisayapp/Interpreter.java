@@ -67,8 +67,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssign(Expr.Assign e) {
         Object v = eval(e.value);
-        if (!env.isDefined(e.name)) env.define(e.name, v); // implicit declare-on-first-assignment
-        else env.assign(e.name, v);
+        // TODO: Fixed - Require variables to be declared before assignment
+        if (!env.isDeclared(e.name)) {
+            throw new RuntimeException("Undefined variable '" + e.name + "'. Variables must be declared with MUGNA before assignment.");
+        }
+        env.assign(e.name, v);
         return v;
     }
 
