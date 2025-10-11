@@ -40,21 +40,21 @@ flowchart TD
 
 ## Function Categories
 
-### 🏁 Entry Point Functions
+### Entry Point Functions
 - [`parseProgram()`](#parseprogram) - Main parsing entry point
 
-### 📝 Statement Parsing Functions
+### Statement Parsing Functions
 - [`statement()`](#statement) - Statement dispatcher
 - [`printStmt()`](#printstmt) - IPAKITA statement parser
 - [`varDecl()`](#vardecl) - MUGNA declaration parser
 - [`exprStmt()`](#exprstmt) - Expression statement wrapper
 
-### 🧮 Expression Parsing Functions
+### Expression Parsing Functions
 - [`assignment()`](#assignment) - Assignment expression parser
 - [`concatenation()`](#concatenation) - String concatenation parser
 - [`primaryExpr()`](#primaryexpr) - Primary expression parser
 
-### 🔧 Utility Functions
+### Utility Functions
 - [`consume()`](#consume) - Required token consumer
 - [`consumeOneOf()`](#consumeoneof) - Multi-option token consumer
 - [`match()`](#match) - Optional token matcher
@@ -66,7 +66,7 @@ flowchart TD
 - [`isAtEnd()`](#isatend) - EOF checker
 - [`skipNewlines()`](#skipnewlines) - Newline skipper
 
-### ⚠️ Error Handling Functions
+### Error Handling Functions
 - [`error()`](#error) - Error reporter and exception creator
 
 ---
@@ -164,14 +164,14 @@ private Stmt printStmt()
 
 **Purpose:** Parses IPAKITA (print) statements with concatenated expressions
 
-**Grammar:** `IPAKITA ":" expression ("&" expression)* ";"?`
+**Grammar:** `IPAKITA ":" expression ("&" expression)*`
 
 **Behavior:**
 1. Assumes `IPAKITA` already consumed by caller
 2. Consumes required `:` token
 3. Parses first expression (required)
 4. Parses additional expressions separated by `&`
-5. Optionally consumes `;` token
+5. Validates no unexpected tokens follow (semicolons cause errors)
 
 **Input:** Token stream positioned after `IPAKITA`
 
@@ -182,6 +182,7 @@ private Stmt printStmt()
 **Throws:** `ParseError` for:
 - Missing `:` after `IPAKITA`
 - Invalid expressions in concatenation chain
+- Semicolons after statement (not allowed in Bisaya++)
 
 **Debug Notes:**
 - First expression is required, additional are optional
@@ -205,7 +206,7 @@ private Stmt varDecl()
 
 **Purpose:** Parses MUGNA variable declarations with optional initializers
 
-**Grammar:** `MUGNA type identifier ("=" expression)? ("," identifier ("=" expression)?)* ";"?`
+**Grammar:** `MUGNA type identifier ("=" expression)? ("," identifier ("=" expression)?)*`
 
 **Behavior:**
 1. Assumes `MUGNA` already consumed by caller
@@ -214,7 +215,7 @@ private Stmt varDecl()
 4. For each variable:
    - Consumes identifier
    - Optionally parses `= expression` initializer
-5. Optionally consumes `;` token
+5. Validates no semicolons follow (causes error)
 
 **Input:** Token stream positioned after `MUGNA`
 
@@ -226,6 +227,7 @@ private Stmt varDecl()
 - Invalid type after `MUGNA`
 - Missing variable names
 - Invalid initializer expressions
+- Semicolons after declaration (not allowed in Bisaya++)
 
 **Debug Notes:**
 - Multiple variables allowed: `MUGNA NUMERO x, y, z=5`
@@ -249,11 +251,11 @@ private Stmt exprStmt()
 
 **Purpose:** Wraps expressions as statements (mainly assignments)
 
-**Grammar:** `assignment ";"?`
+**Grammar:** `assignment`
 
 **Behavior:**
 1. Parses assignment expression
-2. Optionally consumes `;` token
+2. Validates no semicolons follow (causes error)
 3. Wraps expression in statement node
 
 **Input:** Current token position
@@ -267,7 +269,7 @@ private Stmt exprStmt()
 **Debug Notes:**
 - Used for assignments like `x = 5`
 - Also handles bare expressions (though uncommon)
-- Semicolon is always optional in Bisaya++
+- Semicolons are not allowed and cause parse errors
 
 ---
 

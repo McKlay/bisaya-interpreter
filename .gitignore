@@ -6,7 +6,7 @@ build
 
 
 # .github/: Excludes GitHub-related configurations, such as workflow files and issue templates.
- .github/
+# .github/
 # .vscode/: Excludes Visual Studio Code settings, extensions, and workspace-specific files.
 .vscode/
 # bisaya-interpreter.code-workspace: Excludes the VS Code workspace file for this project
