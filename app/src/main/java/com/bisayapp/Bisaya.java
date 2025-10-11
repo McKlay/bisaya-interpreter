@@ -28,6 +28,7 @@ public class Bisaya {
         List<Stmt> program = parser.parseProgram();
         if (ErrorReporter.hadError()) System.exit(65);
 
+        System.out.println("Tokenized & Parsed Successfully");
         System.out.println("=== PROGRAM OUTPUT ===");
         new Interpreter(System.out).interpret(program);
     }

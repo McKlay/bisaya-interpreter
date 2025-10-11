@@ -50,18 +50,18 @@ public class Parser {
      * @throws ParseError if program structure is invalid
      */
     public List<Stmt> parseProgram() {
-        skipNewlines(); // Skip any leading newlines before SUGOD
+        skipNewlines();
         consume(TokenType.SUGOD, "Program must start with SUGOD.");
-        skipNewlines(); // Skip any newlines after SUGOD
+        skipNewlines();
 
         List<Stmt> stmts = new ArrayList<>();
         
         // Parse all statements until we reach KATAPUSAN or EOF
         while (!check(TokenType.KATAPUSAN) && !isAtEnd()) {
-            skipNewlines(); // Skip newlines before each statement
+            skipNewlines();
             if (!check(TokenType.KATAPUSAN) && !isAtEnd()) {
                 stmts.add(statement());
-                skipNewlines(); // Skip newlines after each statement
+                skipNewlines();
             }
         }
 
@@ -103,7 +103,7 @@ public class Parser {
     /**
      * Parses IPAKITA (print) statements
      * 
-     * Grammar: IPAKITA ":" expression ("&" expression)* ";"?
+     * Grammar: IPAKITA ":" expression ("&" expression)*
      * 
      * Example: IPAKITA: "Hello" & " " & "World" & $
      * 
@@ -121,7 +121,12 @@ public class Parser {
             parts.add(primaryExpr());
         }
 
-        match(TokenType.SEMICOLON); // Optional semicolon
+        // Check if there are unexpected tokens after the expression(s)
+        // This catches cases like "IPAKITA: a b c" where & is missing between variables
+        if (!check(TokenType.NEWLINE) && !isAtEnd() && !check(TokenType.EOF)) {
+            throw error(peek(), "Expected newline or end of program after IPAKITA statement.");
+        }
+
         return new Stmt.Print(parts);
     }
 
@@ -144,13 +149,13 @@ public class Parser {
             TokenType.NUMERO, TokenType.LETRA, TokenType.TINUOD, TokenType.TIPIK);
 
         List<Stmt.VarDecl.Item> items = new ArrayList<>();
-        List<String> declaredNames = new ArrayList<>(); // TODO: Fixed - Track declared names in this statement
+        List<String> declaredNames = new ArrayList<>(); // Track declared names in this statement
         
         // Parse comma-separated list of variable declarations
         do {
             String name = consume(TokenType.IDENTIFIER, "Expect variable name.").lexeme;
             
-            // TODO: Fixed - Check for duplicate declaration in same statement
+            // Check for duplicate declaration in same statement
             if (declaredNames.contains(name)) {
                 throw error(previous(), "Cannot declare variable '" + name + "' twice in the same statement.");
             }
@@ -166,14 +171,18 @@ public class Parser {
             items.add(new Stmt.VarDecl.Item(name, init));
         } while (match(TokenType.COMMA)); // Continue if comma found
 
-        match(TokenType.SEMICOLON); // Optional semicolon
+        // Check for unexpected tokens after variable declaration
+        if (check(TokenType.SEMICOLON)) {
+            throw error(peek(), "Semicolons are not allowed after statements in Bisaya++.");
+        }
+
         return new Stmt.VarDecl(typeTok.type, items);
     }
 
     /**
      * Parses expression statements (assignments and bare expressions)
      * 
-     * Grammar: assignment ";"?
+     * Grammar: assignment
      * 
      * Examples:
      * - x = 5
@@ -184,7 +193,12 @@ public class Parser {
      */
     private Stmt exprStmt() {
         Expr e = assignment();
-        match(TokenType.SEMICOLON); // Optional semicolon
+        
+        // Check for semicolons and throw error if found
+        if (check(TokenType.SEMICOLON)) {
+            throw error(peek(), "Semicolons are not allowed after statements in Bisaya++.");
+        }
+        
         return new Stmt.ExprStmt(e);
     }
 

@@ -47,10 +47,10 @@ flowchart TD
 program        → SUGOD statement* KATAPUSAN EOF
 
 statement      → printStmt | varDecl | exprStmt
-printStmt      → IPAKITA ":" expression ( "&" expression )* ";"?
+printStmt      → IPAKITA ":" expression ( "&" expression )*
 varDecl        → MUGNA type identifier ( "=" expression )? 
-                 ( "," identifier ( "=" expression )? )* ";"?
-exprStmt       → assignment ";"?
+                 ( "," identifier ( "=" expression )? )*
+exprStmt       → assignment
 
 type           → NUMERO | LETRA | TINUOD | TIPIK
 ```
@@ -358,6 +358,14 @@ Program [
    ```
    Error: "Unexpected tokens after KATAPUSAN."
 
+5. **Invalid Semicolons**
+   ```bisaya
+   SUGOD
+   MUGNA NUMERO x;   // Semicolon not allowed
+   KATAPUSAN
+   ```
+   Error: "Semicolons are not allowed after statements in Bisaya++."
+
 ### Error Recovery Strategy
 
 The parser uses **panic mode recovery**:
@@ -394,6 +402,21 @@ The parser uses **panic mode recovery**:
 - **Error Reporting**: Delegates to `ErrorReporter` with position info
 - **Exception Handling**: Throws `ParseError` for syntax violations
 
+## Language Design Notes
+
+### Semicolon Policy
+Bisaya++ does **not** use semicolons as statement terminators. This design choice:
+- Simplifies syntax for educational purposes  
+- Reduces cognitive load for beginner programmers
+- Follows the principle of minimal punctuation
+- Any semicolon encountered causes a parse error with clear message
+
+### Statement Termination
+Statements are terminated by:
+- Newlines (handled by lexer and parser)
+- Program structure keywords (`KATAPUSAN`)
+- End of file
+
 ## Performance Characteristics
 
 - **Time Complexity**: O(n) - single pass through tokens
@@ -423,6 +446,9 @@ parse("SUGOD\nx=y=4\nKATAPUSAN") → nested Assign nodes
 
 // Print with concatenation
 parse("SUGOD\nIPAKITA: \"A\" & $\nKATAPUSAN") → Print with Binary expr
+
+// Semicolons cause errors
+parse("SUGOD\nx=5;\nKATAPUSAN") → ParseError: "Semicolons are not allowed"
 ```
 
 ## Future Extensions
