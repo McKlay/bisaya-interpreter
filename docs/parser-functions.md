@@ -40,21 +40,21 @@ flowchart TD
 
 ## Function Categories
 
-### 🏁 Entry Point Functions
+### Entry Point Functions
 - [`parseProgram()`](#parseprogram) - Main parsing entry point
 
-### 📝 Statement Parsing Functions
+### Statement Parsing Functions
 - [`statement()`](#statement) - Statement dispatcher
 - [`printStmt()`](#printstmt) - IPAKITA statement parser
 - [`varDecl()`](#vardecl) - MUGNA declaration parser
 - [`exprStmt()`](#exprstmt) - Expression statement wrapper
 
-### 🧮 Expression Parsing Functions
+### Expression Parsing Functions
 - [`assignment()`](#assignment) - Assignment expression parser
 - [`concatenation()`](#concatenation) - String concatenation parser
 - [`primaryExpr()`](#primaryexpr) - Primary expression parser
 
-### 🔧 Utility Functions
+### Utility Functions
 - [`consume()`](#consume) - Required token consumer
 - [`consumeOneOf()`](#consumeoneof) - Multi-option token consumer
 - [`match()`](#match) - Optional token matcher
@@ -66,7 +66,7 @@ flowchart TD
 - [`isAtEnd()`](#isatend) - EOF checker
 - [`skipNewlines()`](#skipnewlines) - Newline skipper
 
-### ⚠️ Error Handling Functions
+### Error Handling Functions
 - [`error()`](#error) - Error reporter and exception creator
 
 ---
