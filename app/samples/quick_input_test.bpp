@@ -1,0 +1,12 @@
+-- Quick input test
+SUGOD
+MUGNA NUMERO age
+MUGNA LETRA grade
+
+IPAKITA: "Enter age: "
+DAWAT: age
+IPAKITA: "Enter grade: "
+DAWAT: grade
+
+IPAKITA: "You are " & age & " years old with grade " & grade
+KATAPUSAN

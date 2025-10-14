@@ -19,7 +19,8 @@ public class CommentAndNewlineRulesTest {
         String src = """
         SUGOD
           -- before
-          IPAKITA: "A" & $ -- inline
+          IPAKITA: "A" & $
+          -- this is now a standalone comment
           IPAKITA: "B"
           -- after
         KATAPUSAN

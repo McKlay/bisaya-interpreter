@@ -1,0 +1,36 @@
+-- Increment 2 Sample: Arithmetic Operations
+-- Demonstrates basic arithmetic operators: +, -, *, /, %
+
+SUGOD
+MUGNA NUMERO a=10, b=3, result
+
+-- Addition
+result = a + b
+IPAKITA: "Addition: " & a & " + " & b & " = " & result & $
+
+-- Subtraction
+result = a - b
+IPAKITA: "Subtraction: " & a & " - " & b & " = " & result & $
+
+-- Multiplication
+result = a * b
+IPAKITA: "Multiplication: " & a & " * " & b & " = " & result & $
+
+-- Division (integer division)
+result = a / b
+IPAKITA: "Division: " & a & " / " & b & " = " & result & $
+
+-- Modulo
+result = a % b
+IPAKITA: "Modulo: " & a & " % " & b & " = " & result & $
+
+-- Complex expression with parentheses (all integers)
+result = (a + b) * 2 - a
+IPAKITA: "Complex: (" & a & " + " & b & ") * 2 - " & a & " = " & result & $
+
+-- Decimal arithmetic demonstration
+MUGNA TIPIK x=10.5, y=3.2, fresult
+fresult = x + y
+IPAKITA: $ & "Decimal addition: " & x & " + " & y & " = " & fresult
+
+KATAPUSAN

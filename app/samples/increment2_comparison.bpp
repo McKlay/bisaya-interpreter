@@ -1,0 +1,41 @@
+-- Increment 2 Sample: Comparison and Logical Operations
+-- Demonstrates comparison operators and logical operators
+
+SUGOD
+MUGNA NUMERO x=15, y=20
+MUGNA TINUOD result
+
+-- Comparison operators
+IPAKITA: "x = " & x & ", y = " & y & $
+
+result = x > y
+IPAKITA: x & " > " & y & " = " & result & $
+
+result = x < y
+IPAKITA: x & " < " & y & " = " & result & $
+
+result = x >= y
+IPAKITA: x & " >= " & y & " = " & result & $
+
+result = x <= y
+IPAKITA: x & " <= " & y & " = " & result & $
+
+result = x == y
+IPAKITA: x & " == " & y & " = " & result & $
+
+result = x <> y
+IPAKITA: x & " <> " & y & " = " & result & $
+
+-- Logical operators
+IPAKITA: $ & "Logical Operations:" & $
+
+result = (x > 10) UG (y > 15)
+IPAKITA: "(" & x & " > 10) UG (" & y & " > 15) = " & result & $
+
+result = (x > 10) O (y < 15)
+IPAKITA: "(" & x & " > 10) O (" & y & " < 15) = " & result & $
+
+result = DILI (x > y)
+IPAKITA: "DILI (" & x & " > " & y & ") = " & result
+
+KATAPUSAN

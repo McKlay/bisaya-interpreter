@@ -1,0 +1,34 @@
+-- Comments Enhancement Demo
+-- This program shows improved comment handling without requiring spaces
+-- NOTE: Comments ONLY exist at the start of a line
+
+SUGOD
+
+-- Initialize variables
+MUGNA NUMERO counter = 0
+MUGNA LETRA grade = 'A'
+MUGNA TIPIK price = 99.99
+
+-- Loop simulation using increment operators
+IPAKITA: "Counter demo:" & $
+-- postfix increment, old value used
+counter++
+IPAKITA: "Step 1: " & counter
+
+-- prefix increment, new value used  
+++counter
+IPAKITA: "Step 2: " & counter
+
+-- increment again
+counter++
+IPAKITA: "Step 3: " & counter
+
+-- Multiple comments with various characters
+--!@#$%^&*() special chars work fine
+--[];{}|\\:";'<>?,./
+IPAKITA: $ & "Final values:" & $
+IPAKITA: "Counter: " & counter
+IPAKITA: "Grade: " & grade
+IPAKITA: "Price: " & price
+
+KATAPUSAN

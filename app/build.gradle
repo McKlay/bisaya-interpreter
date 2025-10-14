@@ -25,6 +25,11 @@ application {
     mainClass = 'com.bisayapp.Bisaya'
 }
 
+// Enable standard input for interactive programs
+run {
+    standardInput = System.in
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }

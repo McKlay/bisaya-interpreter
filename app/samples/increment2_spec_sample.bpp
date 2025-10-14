@@ -1,0 +1,10 @@
+-- Sample programs from the Bisaya++ specification (Increment 2)
+
+-- Sample 1: A program with arithmetic operation
+SUGOD
+MUGNA NUMERO xyz, abc=100
+xyz = ((abc * 5) / 10 + 10) * -1
+IPAKITA: "[" & xyz & "]"
+KATAPUSAN
+
+-- Expected output: [-60]

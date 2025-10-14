@@ -73,13 +73,14 @@ public class Increment1Tests {
 
     @Test
     void commentsCanAppearAnywhere() {
+        // Updated: comments only exist at start of line
         String src = """
             -- before SUGOD
-            SUGOD -- after SUGOD
-              MUGNA NUMERO x=1 -- after statement
+            SUGOD
+              MUGNA NUMERO x=1
               -- standalone comment
-              IPAKITA: x -- after IPAKITA
-            KATAPUSAN -- after KATAPUSAN
+              IPAKITA: x
+            KATAPUSAN
             -- after program
             """;
         assertEquals("1", runSource(src));

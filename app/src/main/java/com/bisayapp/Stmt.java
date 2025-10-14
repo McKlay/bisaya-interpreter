@@ -7,6 +7,7 @@ public abstract class Stmt {
         R visitPrint(Print s);
         R visitExprStmt(ExprStmt s);
         R visitVarDecl(VarDecl s);
+        R visitInput(Input s);
     }
 
     public static final class Print extends Stmt {
@@ -31,6 +32,12 @@ public abstract class Stmt {
         public final java.util.List<Item> items;
         public VarDecl(TokenType type, java.util.List<Item> items) { this.type = type; this.items = items; }
         @Override public <R> R accept(Visitor<R> v) { return v.visitVarDecl(this); }
+    }
+
+    public static final class Input extends Stmt {
+        public final List<String> varNames;
+        public Input(List<String> varNames) { this.varNames = varNames; }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitInput(this); }
     }
 
     public abstract <R> R accept(Visitor<R> v);

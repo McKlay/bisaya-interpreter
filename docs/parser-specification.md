@@ -46,8 +46,29 @@ flowchart TD
 ```bnf
 program        → SUGOD statement* KATAPUSAN EOF
 
-statement      → printStmt | varDecl | exprStmt
+statement      → printStmt | inputStmt | varDecl | exprStmt
 printStmt      → IPAKITA ":" expression ( "&" expression )*
+inputStmt      → DAWAT ":" identifier ( "," identifier )*
+varDecl        → MUGNA type identifier ( "=" expression )? 
+                 ( "," identifier ( "=" expression )? )*
+exprStmt       → assignment
+
+type           → NUMERO | LETRA | TINUOD | TIPIK
+```
+
+### Expressions (Increment 2 - Complete)
+```bnf
+assignment     → IDENTIFIER "=" assignment | logical
+logical        → logicalAnd ( "O" logicalAnd )*
+logicalAnd     → equality ( "UG" equality )*
+equality       → comparison ( ( "==" | "<>" ) comparison )*
+comparison     → concatenation ( ( ">" | ">=" | "<" | "<=" ) concatenation )*
+concatenation  → term ( "&" term )*
+term           → factor ( ( "+" | "-" ) factor )*
+factor         → unary ( ( "*" | "/" | "%" ) unary )*
+unary          → ( "+" | "-" | "++" | "--" | "DILI" ) unary | primary
+primary        → NUMBER | STRING | CHAR | "$" | "(" assignment ")" | IDENTIFIER
+```
 varDecl        → MUGNA type identifier ( "=" expression )? 
                  ( "," identifier ( "=" expression )? )*
 exprStmt       → assignment

@@ -30,6 +30,6 @@ public class Bisaya {
 
         System.out.println("Tokenized & Parsed Successfully");
         System.out.println("=== PROGRAM OUTPUT ===");
-        new Interpreter(System.out).interpret(program);
+        new Interpreter(System.out, System.in).interpret(program);
     }
 }

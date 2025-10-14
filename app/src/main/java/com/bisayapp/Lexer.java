@@ -116,10 +116,40 @@ public class Lexer {
       case ';' -> add(TokenType.SEMICOLON);
       
       // Arithmetic operators
-      case '+' -> add(TokenType.PLUS);
+      case '+' -> add(match('+') ? TokenType.PLUS_PLUS : TokenType.PLUS);
       case '-' -> {
-        // Handle line comments (--) or minus operator
-        if (match('-')) lineComment(); else add(TokenType.MINUS);
+        if (match('-')) {
+          // This is --
+          // Rule: At start of line, determine if comment or decrement operator
+          if (isAtStartOfLine()) {
+            char next = isAtEnd() ? '\0' : peek();
+            
+            // If followed by whitespace or end, it's definitely a comment
+            if (isAtEnd() || next == ' ' || next == '\n' || next == '\r' || next == '\t') {
+              lineComment();
+            }
+            // If followed by non-identifier character (like punctuation), it's a comment
+            else if (!Character.isJavaIdentifierStart(next) && !Character.isDigit(next)) {
+              lineComment();
+            }
+            // If followed by identifier/digit, check if there's a space later in the line
+            // Comments typically have text: "--this is a comment"
+            // Decrement statements are usually just: "--x"
+            else if (hasSpaceAheadInLine()) {
+              // Has space later = likely comment text
+              lineComment();
+            }
+            else {
+              // No space ahead, likely expression statement like --x
+              add(TokenType.MINUS_MINUS);
+            }
+          } else {
+            // In expression context, always decrement operator
+            add(TokenType.MINUS_MINUS);
+          }
+        } else {
+          add(TokenType.MINUS);
+        }
       }
       case '*' -> add(TokenType.STAR);
       case '/' -> add(TokenType.SLASH);
@@ -229,6 +259,45 @@ public class Lexer {
   }
 
   /**
+   * START OF LINE CHECKER - Determines if we're at the start of a line
+   * 
+   * Comments in Bisaya++ only exist at the start of lines.
+   * A line starts either at the beginning of the file or after a NEWLINE token.
+   * 
+   * @return true if we're at the start of a line (comment context)
+   */
+  private boolean isAtStartOfLine() {
+    // If no tokens generated yet, we're at start of file (start of line)
+    if (tokens.isEmpty()) return true;
+    
+    // Get the last token
+    Token lastToken = tokens.get(tokens.size() - 1);
+    
+    // If the last token is a NEWLINE, we're at the start of a new line
+    return lastToken.type == TokenType.NEWLINE;
+  }
+
+  /**
+   * SPACE AHEAD CHECKER - Looks ahead in current line for spaces
+   * 
+   * Used to disambiguate comments from decrement operators at line start.
+   * Comments typically contain text with spaces: "--this is a comment"
+   * Decrement statements are usually just: "--x"
+   * 
+   * @return true if there's a space character before the next newline
+   */
+  private boolean hasSpaceAheadInLine() {
+    int lookahead = current;
+    while (lookahead < src.length()) {
+      char c = src.charAt(lookahead);
+      if (c == '\n' || c == '\r') return false; // End of line reached, no space found
+      if (c == ' ' || c == '\t') return true;   // Space found
+      lookahead++;
+    }
+    return false; // EOF reached, no space found
+  }
+
+  /**
    * COMMENT PROCESSOR - Consume line comment until newline
    * 
    * Handles '--' style comments by consuming all characters until end of line.
@@ -236,7 +305,7 @@ public class Lexer {
    * 
    * Side effects: Advances current position to end of line
    * 
-   * Usage: Called when scanToken() encounters '--' sequence
+   * Usage: Called when scanToken() encounters '--' sequence at start of line
    */
   private void lineComment() { while (!isAtEnd() && peek() != '\n') advance(); }
 

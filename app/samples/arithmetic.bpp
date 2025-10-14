@@ -1,6 +1,0 @@
--- arithmetic sample from specification
-SUGOD
-    MUGNA NUMERO xyz, abc=100
-    xyz= ((abc *5)/10 + 10) * -1
-    IPAKITA: [[] & xyz & []]
-KATAPUSAN

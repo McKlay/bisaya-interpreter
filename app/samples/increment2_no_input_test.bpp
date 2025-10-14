@@ -1,0 +1,13 @@
+-- Simple test without input to verify the fix worked
+SUGOD
+MUGNA NUMERO x=25
+MUGNA LETRA c='A'  
+MUGNA TIPIK h=1.75
+MUGNA TINUOD student="OO"
+
+IPAKITA: "=== Sample Data ===" & $
+IPAKITA: "Age: " & x & $
+IPAKITA: "Initial: " & c & $
+IPAKITA: "Height: " & h & " meters" & $
+IPAKITA: "Student: " & student
+KATAPUSAN

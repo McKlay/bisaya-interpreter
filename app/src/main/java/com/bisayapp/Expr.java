@@ -6,6 +6,9 @@ public abstract class Expr {
         R visitVariable(Variable e);
         R visitAssign(Assign e);
         R visitBinary(Binary e);
+        R visitUnary(Unary e);
+        R visitPostfix(Postfix e);
+        R visitGrouping(Grouping e);
     }
 
     public static final class Literal extends Expr {
@@ -35,6 +38,30 @@ public abstract class Expr {
             this.left = left; this.operator = operator; this.right = right; 
         }
         @Override public <R> R accept(Visitor<R> v) { return v.visitBinary(this); }
+    }
+
+    public static final class Unary extends Expr {
+        public final Token operator;
+        public final Expr operand;
+        public Unary(Token operator, Expr operand) {
+            this.operator = operator; this.operand = operand;
+        }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitUnary(this); }
+    }
+
+    public static final class Postfix extends Expr {
+        public final Expr operand;
+        public final Token operator;
+        public Postfix(Expr operand, Token operator) {
+            this.operand = operand; this.operator = operator;
+        }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitPostfix(this); }
+    }
+
+    public static final class Grouping extends Expr {
+        public final Expr expression;
+        public Grouping(Expr expression) { this.expression = expression; }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitGrouping(this); }
     }
 
     public abstract <R> R accept(Visitor<R> v);

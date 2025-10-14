@@ -1,0 +1,38 @@
+-- Postfix vs Prefix Increment/Decrement Demo
+-- This program demonstrates the difference between prefix and postfix operators
+
+SUGOD
+
+MUGNA NUMERO a = 5, b = 5, c = 10, d = 10
+
+IPAKITA: "=== Increment Demonstration ===" & $
+
+IPAKITA: "Initial values: a = " & a & ", b = " & b & $
+
+-- Prefix increment: increments first, then returns new value
+IPAKITA: "Prefix ++a: " & ++a & " (a is now " & a & ")" & $
+
+-- Postfix increment: returns old value, then increments  
+IPAKITA: "Postfix b++: " & b++ & " (b is now " & b & ")" & $
+
+IPAKITA: $ & "=== Decrement Demonstration ===" & $
+
+IPAKITA: "Initial values: c = " & c & ", d = " & d & $
+
+-- Prefix decrement: decrements first, then returns new value
+IPAKITA: "Prefix --c: " & --c & " (c is now " & c & ")" & $
+
+-- Postfix decrement: returns old value, then decrements
+IPAKITA: "Postfix d--: " & d-- & " (d is now " & d & ")" & $
+
+IPAKITA: $ & "=== Complex Expression Example ===" & $
+
+MUGNA NUMERO x = 3, y = 7, result
+
+-- Mix of prefix and postfix in expression
+-- increment x first, use old y value
+result = ++x * y--
+IPAKITA: "++x * y-- = " & result & $
+IPAKITA: "Final values: x = " & x & ", y = " & y & $
+
+KATAPUSAN

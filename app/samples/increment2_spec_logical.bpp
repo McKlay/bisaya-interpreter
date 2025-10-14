@@ -1,0 +1,9 @@
+-- Sample 2 from specification: A program with logical operation
+SUGOD
+MUGNA NUMERO a=100, b=200, c=300
+MUGNA TINUOD d
+d = (a < b) UG (c <> 200)
+IPAKITA: d
+KATAPUSAN
+
+-- Expected output: OO

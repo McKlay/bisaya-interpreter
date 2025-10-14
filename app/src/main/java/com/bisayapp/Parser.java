@@ -1,7 +1,9 @@
 package com.bisayapp;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Recursive Descent Parser for Bisaya++ Programming Language
@@ -22,6 +24,9 @@ public class Parser {
     
     /** Current position in the token stream */
     private int current = 0;
+    
+    /** Tracks variables declared during parsing to catch undeclared variable usage early */
+    private final Set<String> declaredVariables = new HashSet<>();
 
     /**
      * Constructs a new Parser with the given token list
@@ -84,10 +89,11 @@ public class Parser {
     /**
      * Parses a single statement
      * 
-     * Grammar: printStmt | varDecl | exprStmt
+     * Grammar: printStmt | inputStmt | varDecl | exprStmt
      * 
      * Determines the type of statement by looking at the first token:
      * - IPAKITA → print statement
+     * - DAWAT → input statement
      * - MUGNA → variable declaration
      * - Other → expression statement (assignments, etc.)
      * 
@@ -96,6 +102,7 @@ public class Parser {
      */
     private Stmt statement() {
         if (match(TokenType.IPAKITA)) return printStmt();
+        if (match(TokenType.DAWAT))   return inputStmt();
         if (match(TokenType.MUGNA))   return varDecl();
         return exprStmt(); // Default: treat as expression statement (assignments, etc.)
     }
@@ -114,11 +121,11 @@ public class Parser {
         consume(TokenType.COLON, "Expect ':' after IPAKITA.");
         
         List<Expr> parts = new ArrayList<>();
-        parts.add(primaryExpr()); // First expression is required
+        parts.add(assignment()); // First expression is required - allow full expressions
 
         // Parse additional expressions separated by & (concatenation)
         while (match(TokenType.AMPERSAND)) {
-            parts.add(primaryExpr());
+            parts.add(assignment()); // Allow full expressions in concatenation too
         }
 
         // Check if there are unexpected tokens after the expression(s)
@@ -128,6 +135,49 @@ public class Parser {
         }
 
         return new Stmt.Print(parts);
+    }
+
+    /**
+     * Parses DAWAT (input) statements
+     * 
+     * Grammar: DAWAT ":" identifier ("," identifier)*
+     * 
+     * Example: DAWAT: x, y, z
+     * 
+     * @return Input statement AST node containing list of variable names
+     * @throws ParseError if input statement syntax is invalid
+     */
+    private Stmt inputStmt() {
+        consume(TokenType.COLON, "Expect ':' after DAWAT.");
+        
+        List<String> varNames = new ArrayList<>();
+        Token firstVar = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        
+        // Validate that the variable is declared
+        if (!declaredVariables.contains(firstVar.lexeme)) {
+            throw error(firstVar, "Undefined variable '" + firstVar.lexeme + 
+                "'. Variables must be declared with MUGNA before using in DAWAT.");
+        }
+        varNames.add(firstVar.lexeme);
+
+        // Parse additional variables separated by comma
+        while (match(TokenType.COMMA)) {
+            Token varToken = consume(TokenType.IDENTIFIER, "Expect variable name after ','.");
+            
+            // Validate that the variable is declared
+            if (!declaredVariables.contains(varToken.lexeme)) {
+                throw error(varToken, "Undefined variable '" + varToken.lexeme + 
+                    "'. Variables must be declared with MUGNA before using in DAWAT.");
+            }
+            varNames.add(varToken.lexeme);
+        }
+
+        // Check for unexpected tokens after the variable list
+        if (!check(TokenType.NEWLINE) && !isAtEnd() && !check(TokenType.EOF)) {
+            throw error(peek(), "Expected newline or end of program after DAWAT statement.");
+        }
+
+        return new Stmt.Input(varNames);
     }
 
     /**
@@ -160,6 +210,9 @@ public class Parser {
                 throw error(previous(), "Cannot declare variable '" + name + "' twice in the same statement.");
             }
             declaredNames.add(name);
+            
+            // Add to global declared variables tracking
+            declaredVariables.add(name);
             
             Expr init = null;
             
@@ -209,7 +262,7 @@ public class Parser {
     /**
      * Parses assignment expressions (highest precedence, right-associative)
      * 
-     * Grammar: IDENTIFIER "=" assignment | concatenation
+     * Grammar: IDENTIFIER "=" assignment | logical
      * 
      * Right-associativity means x=y=4 parses as x=(y=4)
      * 
@@ -217,7 +270,7 @@ public class Parser {
      * @throws ParseError if assignment target is invalid
      */
     private Expr assignment() {
-        Expr expr = concatenation(); // Try to parse as concatenation first
+        Expr expr = logical(); // Try to parse as logical first
         
         if (match(TokenType.EQUAL)) {
             Expr value = assignment(); // Right-associative: recurse on assignment
@@ -234,21 +287,98 @@ public class Parser {
     }
 
     /**
+     * Parses logical OR expressions (left-associative)
+     * 
+     * Grammar: logicalAnd ("O" logicalAnd)*
+     * 
+     * @return Binary expression for OR or lower-precedence expression
+     */
+    private Expr logical() {
+        Expr expr = logicalAnd();
+
+        while (match(TokenType.O)) {
+            Token operator = previous();
+            Expr right = logicalAnd();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses logical AND expressions (left-associative)
+     * 
+     * Grammar: equality ("UG" equality)*
+     * 
+     * @return Binary expression for AND or lower-precedence expression
+     */
+    private Expr logicalAnd() {
+        Expr expr = equality();
+
+        while (match(TokenType.UG)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses equality expressions (left-associative)
+     * 
+     * Grammar: comparison (("==" | "<>") comparison)*
+     * 
+     * @return Binary expression for equality/inequality or lower-precedence expression
+     */
+    private Expr equality() {
+        Expr expr = comparison();
+
+        while (match(TokenType.EQUAL_EQUAL) || match(TokenType.LT_GT)) {
+            Token operator = previous();
+            Expr right = comparison();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses comparison expressions (left-associative)
+     * 
+     * Grammar: term ((">" | ">=" | "<" | "<=") term)*
+     * 
+     * @return Binary expression for comparison or lower-precedence expression
+     */
+    private Expr comparison() {
+        Expr expr = concatenation();
+
+        while (match(TokenType.GREATER) || match(TokenType.GREATER_EQUAL) 
+            || match(TokenType.LESS) || match(TokenType.LESS_EQUAL)) {
+            Token operator = previous();
+            Expr right = concatenation();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
      * Parses concatenation expressions (left-associative)
      * 
-     * Grammar: primary ("&" primary)*
+     * Grammar: term ("&" term)*
      * 
      * Left-associativity means "A"&"B"&"C" parses as ("A"&"B")&"C"
      * 
-     * @return Binary expression for concatenation or primary expression
+     * @return Binary expression for concatenation or lower-precedence expression
      */
     private Expr concatenation() {
-        Expr expr = primaryExpr(); // Start with primary expression
+        Expr expr = term(); // Start with term expression
 
         // Parse left-associative concatenation chain
         while (match(TokenType.AMPERSAND)) {
             Token operator = previous(); // The & operator token
-            Expr right = primaryExpr();  // Right operand
+            Expr right = term();  // Right operand
             expr = new Expr.Binary(expr, operator, right); // Build left-associative tree
         }
 
@@ -256,28 +386,120 @@ public class Parser {
     }
 
     /**
-     * Parses primary expressions (lowest precedence - literals and variables)
+     * Parses term expressions (addition/subtraction)
      * 
-     * Grammar: STRING | NUMBER | CHAR | "$" | IDENTIFIER
+     * Grammar: factor (("+" | "-") factor)*
+     * 
+     * @return Binary expression for addition/subtraction or lower-precedence expression
+     */
+    private Expr term() {
+        Expr expr = factor();
+
+        while (match(TokenType.PLUS) || match(TokenType.MINUS)) {
+            Token operator = previous();
+            Expr right = factor();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses factor expressions (multiplication/division/modulo)
+     * 
+     * Grammar: unary (("*" | "/" | "%") unary)*
+     * 
+     * @return Binary expression for multiplication/division/modulo or lower-precedence expression
+     */
+    private Expr factor() {
+        Expr expr = unary();
+
+        while (match(TokenType.STAR) || match(TokenType.SLASH) || match(TokenType.PERCENT)) {
+            Token operator = previous();
+            Expr right = unary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses unary expressions (prefix operators)
+     * 
+     * Grammar: ("+" | "-" | "++" | "--" | "DILI") unary | postfix
+     * 
+     * @return Unary expression or postfix expression
+     */
+    private Expr unary() {
+        if (match(TokenType.PLUS) || match(TokenType.MINUS) || match(TokenType.DILI) 
+            || match(TokenType.PLUS_PLUS) || match(TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            Expr right = unary(); // Right-associative
+            return new Expr.Unary(operator, right);
+        }
+
+        return postfix();
+    }
+
+    /**
+     * Parses postfix expressions (postfix operators)
+     * 
+     * Grammar: primary ("++" | "--")*
+     * 
+     * @return Postfix expression or primary expression
+     */
+    private Expr postfix() {
+        Expr expr = primary();
+        
+        while (match(TokenType.PLUS_PLUS) || match(TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            expr = new Expr.Postfix(expr, operator);
+        }
+        
+        return expr;
+    }
+
+    /**
+     * Parses primary expressions (lowest precedence - literals, variables, and grouping)
+     * 
+     * Grammar: STRING | NUMBER | CHAR | "$" | "(" expression ")" | IDENTIFIER
      * 
      * Primary expressions are the basic building blocks:
      * - String literals: "Hello World"
      * - Number literals: 42, 3.14
      * - Character literals: 'a'
      * - Dollar sign: $ (represents newline)
+     * - Parenthesized expressions: (a + b)
      * - Variable references: x, variable_name
      * 
-     * @return Literal or Variable expression
+     * @return Literal, Variable, or Grouping expression
      * @throws ParseError if no valid primary expression found
      */
-    private Expr primaryExpr() {
+    private Expr primary() {
         if (match(TokenType.STRING))     return new Expr.Literal(previous().literal);
         if (match(TokenType.NUMBER))     return new Expr.Literal(previous().literal);
         if (match(TokenType.CHAR))       return new Expr.Literal(previous().literal);
         if (match(TokenType.DOLLAR))     return new Expr.Literal("\n"); // $ becomes newline
+        
+        // Parenthesized expressions
+        if (match(TokenType.LEFT_PAREN)) {
+            Expr expr = assignment(); // Allow full expressions inside parens
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            return new Expr.Grouping(expr);
+        }
+        
         if (match(TokenType.IDENTIFIER)) return new Expr.Variable(previous().lexeme);
         
-        throw error(peek(), "Expect string/number/char literal, $, or identifier.");
+        throw error(peek(), "Expect expression.");
+    }
+
+    /**
+     * Helper to peek ahead n tokens
+     */
+    private Token peekAhead(int n) {
+        int idx = current + n;
+        if (idx >= tokens.size()) return null;
+        return tokens.get(idx);
     }
 
     // ========================================================================================

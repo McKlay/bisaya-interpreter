@@ -1,0 +1,33 @@
+-- Increment 2 Sample: Unary Operators
+-- Demonstrates unary operators: +, -, ++, --
+
+SUGOD
+MUGNA NUMERO x=10, y
+
+-- Unary plus
+y = +x
+IPAKITA: "Unary plus: +(" & x & ") = " & y & $
+
+-- Unary minus
+y = -x
+IPAKITA: "Unary minus: -(" & x & ") = " & y & $
+
+-- Increment operator
+IPAKITA: $ & "Increment operations:" & $
+x = 5
+IPAKITA: "Initial x = " & x & $
+++x
+IPAKITA: "After ++x: x = " & x & $
+++x
+IPAKITA: "After ++x: x = " & x & $
+
+-- Decrement operator
+IPAKITA: $ & "Decrement operations:" & $
+x = 10
+IPAKITA: "Initial x = " & x & $
+--x
+IPAKITA: "After --x: x = " & x & $
+--x
+IPAKITA: "After --x: x = " & x
+
+KATAPUSAN
