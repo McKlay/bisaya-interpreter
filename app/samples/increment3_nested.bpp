@@ -1,0 +1,27 @@
+-- Nested conditionals example - Leap year checker
+SUGOD
+    MUGNA NUMERO year=2024
+    MUGNA TINUOD isLeap="DILI"
+    
+    KUNG (year % 4 == 0)
+    PUNDOK{
+        KUNG (year % 100 == 0)
+        PUNDOK{
+            KUNG (year % 400 == 0)
+            PUNDOK{
+                isLeap = "OO"
+            }
+        }
+        KUNG WALA
+        PUNDOK{
+            isLeap = "OO"
+        }
+    }
+    
+    IPAKITA: year & " is " & (DILI isLeap) & " a leap year"
+    
+    KUNG (isLeap)
+    PUNDOK{
+        IPAKITA: "February has 29 days!"
+    }
+KATAPUSAN

@@ -104,6 +104,8 @@ public class Parser {
         if (match(TokenType.IPAKITA)) return printStmt();
         if (match(TokenType.DAWAT))   return inputStmt();
         if (match(TokenType.MUGNA))   return varDecl();
+        if (match(TokenType.KUNG))    return ifStmt();
+        if (match(TokenType.PUNDOK))  return block();
         return exprStmt(); // Default: treat as expression statement (assignments, etc.)
     }
 
@@ -264,6 +266,127 @@ public class Parser {
         }
         
         return new Stmt.ExprStmt(e);
+    }
+
+    /**
+     * Parses KUNG (if) statements with optional KUNG WALA (else) or KUNG DILI (else if)
+     * 
+     * Grammar:
+     *   KUNG "(" expression ")" PUNDOK "{" statement* "}"
+     *   ("KUNG" "DILI" "(" expression ")" PUNDOK "{" statement* "}")*
+     *   ("KUNG" "WALA" PUNDOK "{" statement* "}")?
+     * 
+     * Examples:
+     * - KUNG (x > 5) PUNDOK { IPAKITA: x }
+     * - KUNG (x > 5) PUNDOK { ... } KUNG WALA PUNDOK { ... }
+     * - KUNG (x > 5) PUNDOK { ... } KUNG DILI (x > 3) PUNDOK { ... } KUNG WALA PUNDOK { ... }
+     * 
+     * @return If statement AST node
+     * @throws ParseError if if statement syntax is invalid
+     */
+    private Stmt ifStmt() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after KUNG.");
+        Expr condition = assignment(); // Parse condition expression
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        skipNewlines();
+        
+        // Parse the then branch (must be a PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG condition.");
+        Stmt thenBranch = block();
+        
+        skipNewlines();
+        
+        // Check for else-if (KUNG DILI) or else (KUNG WALA)
+        Stmt elseBranch = null;
+        if (check(TokenType.KUNG)) {
+            // Peek ahead to see if this is KUNG DILI or KUNG WALA
+            if (checkNext(TokenType.DILI)) {
+                // KUNG DILI - else if
+                advance(); // consume KUNG
+                advance(); // consume DILI
+                elseBranch = parseElseIfChain();
+            } else if (checkNext(TokenType.WALA)) {
+                // KUNG WALA - else
+                advance(); // consume KUNG
+                advance(); // consume WALA
+                skipNewlines();
+                consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG WALA.");
+                elseBranch = block();
+            }
+        }
+        
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parses a chain of else-if (KUNG DILI) statements
+     * 
+     * This is a helper method for ifStmt() that handles multiple KUNG DILI clauses
+     * and an optional final KUNG WALA clause.
+     * 
+     * @return If statement representing the else-if chain
+     * @throws ParseError if syntax is invalid
+     */
+    private Stmt parseElseIfChain() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after KUNG DILI.");
+        Expr condition = assignment();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after KUNG DILI condition.");
+        skipNewlines();
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG DILI condition.");
+        Stmt thenBranch = block();
+        skipNewlines();
+        
+        // Check for more else-ifs or final else
+        Stmt elseBranch = null;
+        if (check(TokenType.KUNG)) {
+            if (checkNext(TokenType.DILI)) {
+                // Another else-if
+                advance(); // consume KUNG
+                advance(); // consume DILI
+                elseBranch = parseElseIfChain(); // Recursively handle the chain
+            } else if (checkNext(TokenType.WALA)) {
+                // Final else
+                advance(); // consume KUNG
+                advance(); // consume WALA
+                skipNewlines();
+                consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG WALA.");
+                elseBranch = block();
+            }
+        }
+        
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parses a PUNDOK block statement
+     * 
+     * Grammar: "{" statement* "}"
+     * 
+     * Blocks group multiple statements together and are used in control structures
+     * 
+     * @return Block statement AST node containing list of statements
+     * @throws ParseError if block syntax is invalid
+     */
+    private Stmt block() {
+        consume(TokenType.LEFT_BRACE, "Expect '{' after PUNDOK.");
+        skipNewlines();
+        
+        List<Stmt> statements = new ArrayList<>();
+        
+        // Parse statements until we hit the closing brace
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            skipNewlines();
+            if (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+                statements.add(statement());
+                skipNewlines();
+            }
+        }
+        
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        
+        return new Stmt.Block(statements);
     }
 
     // ========================================================================================

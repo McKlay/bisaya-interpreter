@@ -1,0 +1,13 @@
+-- KUNG-KUNG WALA (if-else) example
+SUGOD
+    MUGNA NUMERO num=7
+    
+    KUNG (num % 2 == 0)
+    PUNDOK{
+        IPAKITA: num & " is even"
+    }
+    KUNG WALA
+    PUNDOK{
+        IPAKITA: num & " is odd"
+    }
+KATAPUSAN

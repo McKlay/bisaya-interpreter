@@ -122,6 +122,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitIf(Stmt.If s) {
+        Object conditionValue = eval(s.condition);
+        
+        if (isTruthy(conditionValue)) {
+            execute(s.thenBranch);
+        } else if (s.elseBranch != null) {
+            execute(s.elseBranch);
+        }
+        
+        return null;
+    }
+
+    @Override
+    public Void visitBlock(Stmt.Block s) {
+        for (Stmt stmt : s.statements) {
+            execute(stmt);
+        }
+        return null;
+    }
+
     // --- Expr ---
     @Override
     public Object visitLiteral(Expr.Literal e) { return e.value; }

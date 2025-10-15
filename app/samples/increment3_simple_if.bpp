@@ -1,0 +1,12 @@
+-- Simple KUNG (if) statement example
+SUGOD
+    MUGNA NUMERO x=10
+    
+    KUNG (x > 5)
+    PUNDOK{
+        IPAKITA: "x is greater than 5"
+        IPAKITA: "x = " & x
+    }
+    
+    IPAKITA: "Program completed"
+KATAPUSAN

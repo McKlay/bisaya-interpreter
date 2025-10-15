@@ -1,0 +1,32 @@
+-- Complex conditional logic example
+SUGOD
+    MUGNA NUMERO a=100, b=200, c=300
+    MUGNA TINUOD result="DILI"
+    
+    -- Complex boolean expression with logical operators
+    result = (a < b UG b < c)
+    
+    KUNG (result)
+    PUNDOK{
+        IPAKITA: "Numbers are in ascending order"
+        
+        -- Nested if to find the range
+        MUGNA NUMERO diff1, diff2
+        diff1 = b - a
+        diff2 = c - b
+        
+        KUNG (diff1 == diff2)
+        PUNDOK{
+            IPAKITA: "The numbers form an arithmetic sequence"
+            IPAKITA: "Common difference: " & diff1
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: "The differences are not equal"
+        }
+    }
+    KUNG WALA
+    PUNDOK{
+        IPAKITA: "Numbers are not in ascending order"
+    }
+KATAPUSAN

@@ -1,0 +1,25 @@
+-- KUNG-KUNG DILI (if-else-if) example - Grade calculator
+SUGOD
+    MUGNA NUMERO score=85
+    
+    KUNG (score >= 90)
+    PUNDOK{
+        IPAKITA: "Grade: A - Excellent!"
+    }
+    KUNG DILI (score >= 80)
+    PUNDOK{
+        IPAKITA: "Grade: B - Very Good!"
+    }
+    KUNG DILI (score >= 70)
+    PUNDOK{
+        IPAKITA: "Grade: C - Good"
+    }
+    KUNG DILI (score >= 60)
+    PUNDOK{
+        IPAKITA: "Grade: D - Passing"
+    }
+    KUNG WALA
+    PUNDOK{
+        IPAKITA: "Grade: F - Failed"
+    }
+KATAPUSAN
