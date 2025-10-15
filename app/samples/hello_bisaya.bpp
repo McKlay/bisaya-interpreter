@@ -1,5 +1,6 @@
 SUGOD
-	MUGNA TIPIK result = 5.8
-	DAWAT: x
-	IPAKITA: result
+	MUGNA TIPIK x = 5.5
+	MUGNA NUMERO x = 9
+    DAWAT: x
+	IPAKITA: x
 KATAPUSAN

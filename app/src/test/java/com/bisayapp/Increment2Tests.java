@@ -469,6 +469,87 @@ public class Increment2Tests {
     }
 
     // ====================================================================
+    // SHORT-CIRCUIT EVALUATION TESTS (CRITICAL)
+    // ====================================================================
+
+    @Test
+    @DisplayName("Short-circuit: AND stops on first false, avoids division by zero")
+    void testShortCircuitAndAvoidsDivisionByZero() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO x=0
+            MUGNA TINUOD result
+            result = (x <> 0) UG (10 / x > 1)
+            IPAKITA: result
+            KATAPUSAN
+            """;
+        // Should evaluate to DILI without throwing division by zero error
+        // because (x <> 0) is false, so (10 / x > 1) is never evaluated
+        assertEquals("DILI\n", runProgram(src));
+    }
+
+    @Test
+    @DisplayName("Short-circuit: OR stops on first true, avoids division by zero")
+    void testShortCircuitOrAvoidsDivisionByZero() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO x=0
+            MUGNA TINUOD result
+            result = (x == 0) O (10 / x > 1)
+            IPAKITA: result
+            KATAPUSAN
+            """;
+        // Should evaluate to OO without evaluating second operand
+        // because (x == 0) is true
+        assertEquals("OO\n", runProgram(src));
+    }
+
+    @Test
+    @DisplayName("Short-circuit: AND evaluates second operand when first is true")
+    void testShortCircuitAndEvaluatesSecondWhenNeeded() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO x=5, y=3
+            MUGNA TINUOD result
+            result = (x > 3) UG (y < 5)
+            IPAKITA: result
+            KATAPUSAN
+            """;
+        // Both operands should be evaluated, result should be OO
+        assertEquals("OO\n", runProgram(src));
+    }
+
+    @Test
+    @DisplayName("Short-circuit: OR evaluates second operand when first is false")
+    void testShortCircuitOrEvaluatesSecondWhenNeeded() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO x=2, y=8
+            MUGNA TINUOD result
+            result = (x > 5) O (y > 5)
+            IPAKITA: result
+            KATAPUSAN
+            """;
+        // Second operand should be evaluated, result should be OO
+        assertEquals("OO\n", runProgram(src));
+    }
+
+    @Test
+    @DisplayName("Short-circuit: Complex expression with potential error")
+    void testShortCircuitComplexExpression() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO a=0, b=5
+            MUGNA TINUOD result
+            result = (a == 0) O ((b / a) > 1)
+            IPAKITA: result
+            KATAPUSAN
+            """;
+        // First operand is true, so second operand (which would crash) is not evaluated
+        assertEquals("OO\n", runProgram(src));
+    }
+
+    // ====================================================================
     // DAWAT (INPUT) TESTS
     // ====================================================================
 

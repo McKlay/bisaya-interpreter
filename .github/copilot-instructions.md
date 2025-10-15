@@ -112,7 +112,7 @@ c&last
 - all variable declaration starts with MUGNA
 - all variable names are case sensitive and starts with letter or an underscore (_) and followed by a letter, underscore or digits.
 - every line contains a single statement
-- comments starts with double minus sign(--) and it can be placed anywhere in the program
+- comments starts with double minus sign(--) and it can be placed anywhere in the program but only at the start of the line
 - all reserved words are in capital letters and cannot be used as variable names
 - dollar sign($) signifies next line or carriage return
 - ampersand(&) serves as a concatenator

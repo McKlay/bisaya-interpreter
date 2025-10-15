@@ -11,6 +11,10 @@ public class Environment {
 
     // declare with type
     public void declare(String name, TokenType type, Object value) {
+        // Check if variable is already declared
+        if (types.containsKey(name)) {
+            throw new RuntimeException("Variable '" + name + "' is already declared.");
+        }
         types.put(name, type);
         values.put(name, coerce(type, value));
     }

@@ -151,6 +151,7 @@ public class Parser {
         consume(TokenType.COLON, "Expect ':' after DAWAT.");
         
         List<String> varNames = new ArrayList<>();
+        List<String> seenVariables = new ArrayList<>(); // Track duplicates in this DAWAT statement
         Token firstVar = consume(TokenType.IDENTIFIER, "Expect variable name.");
         
         // Validate that the variable is declared
@@ -158,7 +159,9 @@ public class Parser {
             throw error(firstVar, "Undefined variable '" + firstVar.lexeme + 
                 "'. Variables must be declared with MUGNA before using in DAWAT.");
         }
+        
         varNames.add(firstVar.lexeme);
+        seenVariables.add(firstVar.lexeme);
 
         // Parse additional variables separated by comma
         while (match(TokenType.COMMA)) {
@@ -169,7 +172,15 @@ public class Parser {
                 throw error(varToken, "Undefined variable '" + varToken.lexeme + 
                     "'. Variables must be declared with MUGNA before using in DAWAT.");
             }
+            
+            // Check for duplicate variables in this DAWAT statement
+            if (seenVariables.contains(varToken.lexeme)) {
+                throw error(varToken, "Duplicate variable '" + varToken.lexeme + 
+                    "' in DAWAT statement. Each variable should appear only once.");
+            }
+            
             varNames.add(varToken.lexeme);
+            seenVariables.add(varToken.lexeme);
         }
 
         // Check for unexpected tokens after the variable list

@@ -150,6 +150,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitBinary(Expr.Binary e) {
         Object left = eval(e.left);
+        
+        // Handle short-circuit operators FIRST, before evaluating right operand
+        // This prevents unnecessary evaluation and potential runtime errors
+        if (e.operator.type == TokenType.UG) { // AND operator
+            // If left is false, result is always false - don't evaluate right
+            if (!isTruthy(left)) return false;
+            // Only evaluate right if left is true
+            return isTruthy(eval(e.right));
+        }
+        
+        if (e.operator.type == TokenType.O) { // OR operator
+            // If left is true, result is always true - don't evaluate right
+            if (isTruthy(left)) return true;
+            // Only evaluate right if left is false
+            return isTruthy(eval(e.right));
+        }
+        
+        // For all other operators, evaluate right operand normally
         Object right = eval(e.right);
         
         switch (e.operator.type) {
@@ -182,11 +200,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             case LT_GT:
                 return !isEqual(left, right);
             
-            // Logical operators
-            case UG: // AND
-                return isTruthy(left) && isTruthy(right);
-            case O: // OR
-                return isTruthy(left) || isTruthy(right);
+            // Note: UG (AND) and O (OR) are handled above with short-circuit evaluation
             
             default:
                 throw new RuntimeException("Unsupported binary operator: " + e.operator.lexeme);
@@ -369,6 +383,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private boolean isEqual(Object left, Object right) {
         if (left == null && right == null) return true;
         if (left == null) return false;
+        
+        // Handle numeric comparisons (Integer vs Double, etc.)
+        if (left instanceof Number && right instanceof Number) {
+            Number l = (Number) left;
+            Number r = (Number) right;
+            return Double.compare(l.doubleValue(), r.doubleValue()) == 0;
+        }
+        
         return left.equals(right);
     }
 
