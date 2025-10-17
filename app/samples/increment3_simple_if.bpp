@@ -4,8 +4,8 @@ SUGOD
     
     KUNG (x > 5)
     PUNDOK{
-        IPAKITA: "x is greater than 5"
-        IPAKITA: "x = " & x
+        IPAKITA: "x is greater than 5" & $
+        IPAKITA: "x = " & x & $
     }
     
     IPAKITA: "Program completed"

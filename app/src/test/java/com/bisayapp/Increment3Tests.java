@@ -34,7 +34,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("x is greater than 5\n", runProgram(src));
+        assertEquals("x is greater than 5", runProgram(src));
     }
 
     @Test
@@ -50,7 +50,7 @@ public class Increment3Tests {
             IPAKITA: "done"
             KATAPUSAN
             """;
-        assertEquals("done\n", runProgram(src));
+        assertEquals("done", runProgram(src));
     }
 
     @Test
@@ -65,7 +65,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("a is less than b\n", runProgram(src));
+        assertEquals("a is less than b", runProgram(src));
     }
 
     @Test
@@ -80,7 +80,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("condition is true\n", runProgram(src));
+        assertEquals("condition is true", runProgram(src));
     }
 
     @Test
@@ -95,7 +95,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("x is not 10\n", runProgram(src));
+        assertEquals("x is not 10", runProgram(src));
     }
 
     @Test
@@ -110,7 +110,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("flag is false\n", runProgram(src));
+        assertEquals("flag is false", runProgram(src));
     }
 
     @Test
@@ -121,14 +121,14 @@ public class Increment3Tests {
             MUGNA NUMERO x=10, y=20
             KUNG (x < y)
             PUNDOK{
-                IPAKITA: "First line"
-                IPAKITA: "Second line"
+                IPAKITA: "First line" & $
+                IPAKITA: "Second line" & $
                 x = x + 5
                 IPAKITA: x
             }
             KATAPUSAN
             """;
-        assertEquals("First line\nSecond line\n15\n", runProgram(src));
+        assertEquals("First line\nSecond line\n15", runProgram(src));
     }
 
     // ====================================================================
@@ -151,7 +151,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("then branch\n", runProgram(src));
+        assertEquals("then branch", runProgram(src));
     }
 
     @Test
@@ -170,7 +170,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("else branch\n", runProgram(src));
+        assertEquals("else branch", runProgram(src));
     }
 
     @Test
@@ -190,7 +190,7 @@ public class Increment3Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("100\n", runProgram(src));
+        assertEquals("100", runProgram(src));
     }
 
     // ====================================================================
@@ -217,7 +217,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("greater than 5\n", runProgram(src));
+        assertEquals("greater than 5", runProgram(src));
     }
 
     @Test
@@ -240,7 +240,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("5 or less\n", runProgram(src));
+        assertEquals("5 or less", runProgram(src));
     }
 
     @Test
@@ -267,7 +267,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("C\n", runProgram(src));
+        assertEquals("C", runProgram(src));
     }
 
     @Test
@@ -287,7 +287,7 @@ public class Increment3Tests {
             IPAKITA: "done"
             KATAPUSAN
             """;
-        assertEquals("done\n", runProgram(src));
+        assertEquals("done", runProgram(src));
     }
 
     // ====================================================================
@@ -309,7 +309,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("both conditions true\n", runProgram(src));
+        assertEquals("both conditions true", runProgram(src));
     }
 
     @Test
@@ -335,7 +335,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("y <= 10\n", runProgram(src));
+        assertEquals("y <= 10", runProgram(src));
     }
 
     @Test
@@ -356,7 +356,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("x is greater than 4\n", runProgram(src));
+        assertEquals("x is greater than 4", runProgram(src));
     }
 
     @Test
@@ -382,7 +382,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("Case 2\n", runProgram(src));
+        assertEquals("Case 2", runProgram(src));
     }
 
     // ====================================================================
@@ -401,7 +401,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("flag is true\n", runProgram(src));
+        assertEquals("flag is true", runProgram(src));
     }
 
     @Test
@@ -416,7 +416,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("complex condition is true\n", runProgram(src));
+        assertEquals("complex condition is true", runProgram(src));
     }
 
     @Test
@@ -435,7 +435,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("short circuit worked\n", runProgram(src));
+        assertEquals("short circuit worked", runProgram(src));
     }
 
     @Test
@@ -450,7 +450,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("short circuit worked\n", runProgram(src));
+        assertEquals("short circuit worked", runProgram(src));
     }
 
     // ====================================================================
@@ -471,7 +471,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("Condition met\n", runProgram(src));
+        assertEquals("Condition met", runProgram(src));
     }
 
     @Test
@@ -500,7 +500,7 @@ public class Increment3Tests {
             IPAKITA: "Grade: " & grade
             KATAPUSAN
             """;
-        assertEquals("Grade: B\n", runProgram(src));
+        assertEquals("Grade: B", runProgram(src));
     }
 
     @Test
@@ -520,7 +520,7 @@ public class Increment3Tests {
             IPAKITA: "Max is: " & max
             KATAPUSAN
             """;
-        assertEquals("Max is: 25\n", runProgram(src));
+        assertEquals("Max is: 25", runProgram(src));
     }
 
     @Test
@@ -547,7 +547,7 @@ public class Increment3Tests {
             IPAKITA: isLeap
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -570,7 +570,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("Zero\n", runProgram(src));
+        assertEquals("Zero", runProgram(src));
     }
 
     // ====================================================================
@@ -589,7 +589,7 @@ public class Increment3Tests {
             IPAKITA: "done"
             KATAPUSAN
             """;
-        assertEquals("done\n", runProgram(src));
+        assertEquals("done", runProgram(src));
     }
 
     @Test
@@ -600,13 +600,13 @@ public class Increment3Tests {
             MUGNA NUMERO x=10
             KUNG (x > 5)
             PUNDOK{
-                IPAKITA: "inside if"
+                IPAKITA: "inside if" & $
             }
-            IPAKITA: "after if"
+            IPAKITA: "after if" & $
             IPAKITA: "still after if"
             KATAPUSAN
             """;
-        assertEquals("inside if\nafter if\nstill after if\n", runProgram(src));
+        assertEquals("inside if\nafter if\nstill after if", runProgram(src));
     }
 
     @Test
@@ -622,7 +622,7 @@ public class Increment3Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("15\n", runProgram(src));
+        assertEquals("15", runProgram(src));
     }
 
     @Test
@@ -637,7 +637,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("x equals 10\n", runProgram(src));
+        assertEquals("x equals 10", runProgram(src));
     }
 
     @Test
@@ -652,7 +652,7 @@ public class Increment3Tests {
             }
             KATAPUSAN
             """;
-        assertEquals("x is not 5\n", runProgram(src));
+        assertEquals("x is not 5", runProgram(src));
     }
 
     // ====================================================================

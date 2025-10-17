@@ -113,7 +113,7 @@ public class Increment1Tests {
     void printStringLiteralsOnly() {
         String src = """
             SUGOD
-              IPAKITA: "Hello"
+              IPAKITA: "Hello" & $
               IPAKITA: "World"
             KATAPUSAN
             """;
@@ -124,7 +124,7 @@ public class Increment1Tests {
     void printNumbersOnly() {
         String src = """
             SUGOD
-              IPAKITA: 42
+              IPAKITA: 42 & $
               IPAKITA: 100
             KATAPUSAN
             """;
@@ -248,7 +248,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA NUMERO x=10
-              IPAKITA: x
+              IPAKITA: x & $
               x=20
               IPAKITA: x
             KATAPUSAN
@@ -261,7 +261,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA LETRA ch='A'
-              IPAKITA: ch
+              IPAKITA: ch & $
               ch='B'
               IPAKITA: ch
             KATAPUSAN
@@ -274,7 +274,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA TINUOD flag="OO"
-              IPAKITA: flag
+              IPAKITA: flag & $
               flag="DILI"
               IPAKITA: flag
             KATAPUSAN
@@ -288,7 +288,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
             IPAKITA: [[] & $
-            IPAKITA: []]
+            IPAKITA: []] & $
             IPAKITA: [&]
             KATAPUSAN
             """;
@@ -422,7 +422,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA TINUOD t="DILI"
-              IPAKITA: t
+              IPAKITA: t & $
               t="OO"
               IPAKITA: t
             KATAPUSAN

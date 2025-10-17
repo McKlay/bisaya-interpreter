@@ -18,7 +18,7 @@ SUGOD
         }
     }
     
-    IPAKITA: year & " is " & (DILI isLeap) & " a leap year"
+    IPAKITA: year & " is " & (DILI isLeap) & " a leap year" & $
     
     KUNG (isLeap)
     PUNDOK{

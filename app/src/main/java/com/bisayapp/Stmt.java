@@ -10,6 +10,7 @@ public abstract class Stmt {
         R visitInput(Input s);
         R visitIf(If s);
         R visitBlock(Block s);
+        R visitFor(For s);
     }
 
     public static final class Print extends Stmt {
@@ -58,6 +59,21 @@ public abstract class Stmt {
         public final List<Stmt> statements;
         public Block(List<Stmt> statements) { this.statements = statements; }
         @Override public <R> R accept(Visitor<R> v) { return v.visitBlock(this); }
+    }
+
+    public static final class For extends Stmt {
+        public final Stmt initializer;  // Variable assignment (e.g., ctr=1)
+        public final Expr condition;    // Loop condition (e.g., ctr<=10)
+        public final Stmt update;       // Update statement (e.g., ctr++)
+        public final Stmt body;         // Loop body (PUNDOK{...})
+        
+        public For(Stmt initializer, Expr condition, Stmt update, Stmt body) {
+            this.initializer = initializer;
+            this.condition = condition;
+            this.update = update;
+            this.body = body;
+        }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitFor(this); }
     }
 
     public abstract <R> R accept(Visitor<R> v);

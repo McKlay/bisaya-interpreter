@@ -23,6 +23,7 @@ public enum TokenType {
   MUGNA,
   NUMERO, LETRA, TINUOD, TIPIK,
   KUNG, WALA, DILI, UG, O, PUNDOK,
+  ALANG, SA, // Loop keywords
 
   // Special tokens
   NEWLINE,

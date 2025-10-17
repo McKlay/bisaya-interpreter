@@ -85,7 +85,7 @@ new Interpreter(new PrintStream(buffer))
 
 ### `visitPrint(Stmt.Print s) → Void`
 
-**Purpose**: Execute IPAKITA command with concatenation and newline handling
+**Purpose**: Execute IPAKITA command with concatenation (newlines controlled by $ escape sequence)
 
 **Input**: 
 - `s.parts`: List of expressions to concatenate and output
@@ -94,20 +94,19 @@ new Interpreter(new PrintStream(buffer))
 ```java
 StringBuilder sb = new StringBuilder();
 for (Expr e : s.parts) sb.append(stringify(eval(e)));
-String output = sb.toString();
-if (!output.endsWith("\n")) output += "\n";
-out.print(output);
+out.print(sb.toString());
 ```
 
 **Output Behavior**:
 - Evaluates each expression → `stringify()` → concatenate
-- Adds trailing newline if not present
+- No automatic newlines added - use `$` escape sequence for explicit newlines
 - Sends to `PrintStream`
 
 **Debug Recipe**: Wrong IPAKITA output?
 1. Check `s.parts.size()` - are all expressions parsed?
 2. Step through `eval(e)` for each part - correct values?
 3. Verify `stringify()` results - proper formatting?
+4. Ensure `$` is used where newlines are needed
 4. Check final concatenation and newline addition
 
 **Examples**:

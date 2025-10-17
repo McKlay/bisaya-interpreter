@@ -33,14 +33,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitPrint(Stmt.Print s) {
         StringBuilder sb = new StringBuilder();
         for (Expr e : s.parts) sb.append(stringify(eval(e)));
-        String output = sb.toString();
-        
-        // Add newline if the output doesn't already end with one
-        if (!output.endsWith("\n")) {
-            output += "\n";
-        }
-        
-        out.print(output);
+        // No automatic newline - user must explicitly use $ for newlines
+        out.print(sb.toString());
         return null;
     }
 
@@ -140,6 +134,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         for (Stmt stmt : s.statements) {
             execute(stmt);
         }
+        return null;
+    }
+
+    @Override
+    public Void visitFor(Stmt.For s) {
+        // Execute initializer once
+        if (s.initializer != null) {
+            execute(s.initializer);
+        }
+        
+        // Loop while condition is true
+        while (isTruthy(eval(s.condition))) {
+            // Execute body
+            execute(s.body);
+            
+            // Execute update
+            if (s.update != null) {
+                execute(s.update);
+            }
+        }
+        
         return null;
     }
 

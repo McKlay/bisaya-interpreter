@@ -13,15 +13,15 @@ MUGNA TIPIK price = 99.99
 IPAKITA: "Counter demo:" & $
 -- postfix increment, old value used
 counter++
-IPAKITA: "Step 1: " & counter
+IPAKITA: "Step 1: " & counter & $
 
 -- prefix increment, new value used  
 ++counter
-IPAKITA: "Step 2: " & counter
+IPAKITA: "Step 2: " & counter & $
 
 -- increment again
 counter++
-IPAKITA: "Step 3: " & counter
+IPAKITA: "Step 3: " & counter & $
 
 -- Multiple comments with various characters
 --!@#$%^&*() special chars work fine

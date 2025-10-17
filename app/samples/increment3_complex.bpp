@@ -8,7 +8,7 @@ SUGOD
     
     KUNG (result)
     PUNDOK{
-        IPAKITA: "Numbers are in ascending order"
+        IPAKITA: "Numbers are in ascending order" & $
         
         -- Nested if to find the range
         MUGNA NUMERO diff1, diff2
@@ -17,7 +17,7 @@ SUGOD
         
         KUNG (diff1 == diff2)
         PUNDOK{
-            IPAKITA: "The numbers form an arithmetic sequence"
+            IPAKITA: "The numbers form an arithmetic sequence" & $
             IPAKITA: "Common difference: " & diff1
         }
         KUNG WALA

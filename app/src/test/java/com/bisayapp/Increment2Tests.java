@@ -34,7 +34,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("30\n", runProgram(src));
+        assertEquals("30", runProgram(src));
     }
 
     @Test
@@ -47,7 +47,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("30.8\n", runProgram(src));
+        assertEquals("30.8", runProgram(src));
     }
 
     @Test
@@ -60,7 +60,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("30\n", runProgram(src));
+        assertEquals("30", runProgram(src));
     }
 
     @Test
@@ -73,7 +73,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("30\n", runProgram(src));
+        assertEquals("30", runProgram(src));
     }
 
     @Test
@@ -86,7 +86,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("5\n", runProgram(src));
+        assertEquals("5", runProgram(src));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class Increment2Tests {
             IPAKITA: z
             KATAPUSAN
             """;
-        assertEquals("2\n", runProgram(src));
+        assertEquals("2", runProgram(src));
     }
 
     @Test
@@ -112,7 +112,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("14\n", runProgram(src));
+        assertEquals("14", runProgram(src));
     }
 
     @Test
@@ -125,7 +125,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("20\n", runProgram(src));
+        assertEquals("20", runProgram(src));
     }
 
     @Test
@@ -168,7 +168,7 @@ public class Increment2Tests {
             IPAKITA: y
             KATAPUSAN
             """;
-        assertEquals("-10\n", runProgram(src));
+        assertEquals("-10", runProgram(src));
     }
 
     @Test
@@ -181,7 +181,7 @@ public class Increment2Tests {
             IPAKITA: y
             KATAPUSAN
             """;
-        assertEquals("10\n", runProgram(src));
+        assertEquals("10", runProgram(src));
     }
 
     @Test
@@ -194,7 +194,7 @@ public class Increment2Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("6\n", runProgram(src));
+        assertEquals("6", runProgram(src));
     }
 
     @Test
@@ -207,7 +207,7 @@ public class Increment2Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("4\n", runProgram(src));
+        assertEquals("4", runProgram(src));
     }
 
     @Test
@@ -222,7 +222,7 @@ public class Increment2Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("4\n", runProgram(src));
+        assertEquals("4", runProgram(src));
     }
 
     // ====================================================================
@@ -239,7 +239,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -252,7 +252,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -265,7 +265,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -278,7 +278,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -291,7 +291,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -304,7 +304,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -317,7 +317,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -330,7 +330,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -343,7 +343,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     // ====================================================================
@@ -360,7 +360,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -373,7 +373,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -386,7 +386,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -399,7 +399,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -412,7 +412,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -425,7 +425,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -438,7 +438,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -451,7 +451,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -465,7 +465,7 @@ public class Increment2Tests {
             IPAKITA: d
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     // ====================================================================
@@ -485,7 +485,7 @@ public class Increment2Tests {
             """;
         // Should evaluate to DILI without throwing division by zero error
         // because (x <> 0) is false, so (10 / x > 1) is never evaluated
-        assertEquals("DILI\n", runProgram(src));
+        assertEquals("DILI", runProgram(src));
     }
 
     @Test
@@ -501,7 +501,7 @@ public class Increment2Tests {
             """;
         // Should evaluate to OO without evaluating second operand
         // because (x == 0) is true
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -516,7 +516,7 @@ public class Increment2Tests {
             KATAPUSAN
             """;
         // Both operands should be evaluated, result should be OO
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -531,7 +531,7 @@ public class Increment2Tests {
             KATAPUSAN
             """;
         // Second operand should be evaluated, result should be OO
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -546,7 +546,7 @@ public class Increment2Tests {
             KATAPUSAN
             """;
         // First operand is true, so second operand (which would crash) is not evaluated
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     // ====================================================================
@@ -563,7 +563,7 @@ public class Increment2Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("42\n", runProgramWithInput(src, "42"));
+        assertEquals("42", runProgramWithInput(src, "42"));
     }
 
     @Test
@@ -576,7 +576,7 @@ public class Increment2Tests {
             IPAKITA: x & " " & y
             KATAPUSAN
             """;
-        assertEquals("10 20\n", runProgramWithInput(src, "10, 20"));
+        assertEquals("10 20", runProgramWithInput(src, "10, 20"));
     }
 
     @Test
@@ -589,7 +589,7 @@ public class Increment2Tests {
             IPAKITA: c
             KATAPUSAN
             """;
-        assertEquals("a\n", runProgramWithInput(src, "a"));
+        assertEquals("a", runProgramWithInput(src, "a"));
     }
 
     @Test
@@ -602,7 +602,7 @@ public class Increment2Tests {
             IPAKITA: x
             KATAPUSAN
             """;
-        assertEquals("3.14\n", runProgramWithInput(src, "3.14"));
+        assertEquals("3.14", runProgramWithInput(src, "3.14"));
     }
 
     @Test
@@ -615,7 +615,7 @@ public class Increment2Tests {
             IPAKITA: flag
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgramWithInput(src, "OO"));
+        assertEquals("OO", runProgramWithInput(src, "OO"));
     }
 
     @Test
@@ -628,7 +628,7 @@ public class Increment2Tests {
             IPAKITA: flag
             KATAPUSAN
             """;
-        assertEquals("DILI\n", runProgramWithInput(src, "DILI"));
+        assertEquals("DILI", runProgramWithInput(src, "DILI"));
     }
 
     @Test
@@ -722,7 +722,7 @@ public class Increment2Tests {
             IPAKITA: "[" & xyz & "]"
             KATAPUSAN
             """;
-        assertEquals("[-60]\n", runProgram(src));
+        assertEquals("[-60]", runProgram(src));
     }
 
     @Test
@@ -736,7 +736,7 @@ public class Increment2Tests {
             IPAKITA: d
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     @Test
@@ -749,7 +749,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("26\n", runProgram(src));
+        assertEquals("26", runProgram(src));
     }
 
     @Test
@@ -763,7 +763,7 @@ public class Increment2Tests {
             IPAKITA: result
             KATAPUSAN
             """;
-        assertEquals("OO\n", runProgram(src));
+        assertEquals("OO", runProgram(src));
     }
 
     // ====================================================================

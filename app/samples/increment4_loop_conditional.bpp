@@ -1,0 +1,17 @@
+-- Loop with conditional inside
+-- Prints even numbers from 1 to 20
+SUGOD
+    MUGNA NUMERO n
+    
+    IPAKITA: "Even numbers from 1 to 20:" & $
+    
+    ALANG SA (n=1, n<=20, n++)
+    PUNDOK{
+        KUNG (n % 2 == 0)
+        PUNDOK{
+            IPAKITA: n & ' '
+        }
+    }
+    
+    IPAKITA: $
+KATAPUSAN

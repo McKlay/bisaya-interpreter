@@ -105,6 +105,7 @@ public class Parser {
         if (match(TokenType.DAWAT))   return inputStmt();
         if (match(TokenType.MUGNA))   return varDecl();
         if (match(TokenType.KUNG))    return ifStmt();
+        if (match(TokenType.ALANG))   return forStmt();
         if (match(TokenType.PUNDOK))  return block();
         return exprStmt(); // Default: treat as expression statement (assignments, etc.)
     }
@@ -357,6 +358,51 @@ public class Parser {
         }
         
         return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parses ALANG SA (for loop) statements
+     * 
+     * Grammar: ALANG SA "(" initializer "," condition "," update ")" PUNDOK "{" statement* "}"
+     * 
+     * Example: ALANG SA (ctr=1, ctr<=10, ctr++) PUNDOK{ ... }
+     * 
+     * @return For statement AST node
+     * @throws ParseError if for loop syntax is invalid
+     */
+    private Stmt forStmt() {
+        skipNewlines();
+        consume(TokenType.SA, "Expect 'SA' after 'ALANG'.");
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
+        skipNewlines();
+        
+        // Parse initializer (assignment statement like ctr=1)
+        Stmt initializer = exprStmt();
+        skipNewlines();
+        
+        consume(TokenType.COMMA, "Expect ',' after loop initializer.");
+        skipNewlines();
+        
+        // Parse condition (expression like ctr<=10)
+        Expr condition = assignment();
+        skipNewlines();
+        
+        consume(TokenType.COMMA, "Expect ',' after loop condition.");
+        skipNewlines();
+        
+        // Parse update (expression statement like ctr++)
+        Stmt update = exprStmt();
+        skipNewlines();
+        
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after loop clauses.");
+        skipNewlines();
+        
+        // Parse body (must be PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after ALANG SA header.");
+        Stmt body = block();
+        
+        return new Stmt.For(initializer, condition, update, body);
     }
 
     /**

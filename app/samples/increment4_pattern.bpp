@@ -1,0 +1,16 @@
+-- Complex nested loop example
+-- Prints a pattern
+SUGOD
+    MUGNA NUMERO i, j, k
+    
+    IPAKITA: "Pattern:" & $
+    
+    ALANG SA (i=1, i<=3, i++)
+    PUNDOK{
+        ALANG SA (j=1, j<=i, j++)
+        PUNDOK{
+            IPAKITA: "*"
+        }
+        IPAKITA: $
+    }
+KATAPUSAN

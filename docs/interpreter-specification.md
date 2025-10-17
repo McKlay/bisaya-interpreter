@@ -182,13 +182,12 @@ flowchart LR
   IPAKITA[IPAKITA: expr1 & expr2 & ...] --> EVAL[Evaluate Each Expression]
   EVAL --> STRINGIFY["Apply stringify() to Results"]
   STRINGIFY --> CONCAT[Concatenate All Parts]
-  CONCAT --> NEWLINE[Add Trailing Newline]
-  NEWLINE --> OUTPUT[Print to PrintStream]
+  CONCAT --> OUTPUT[Print to PrintStream]
 ```
 
 **Newline Behavior:**
-- Automatic newline appended if output doesn't end with `\n`
-- Special `$` token from lexer produces `\n` character
+- No automatic newlines - users have explicit control via `$` escape sequence
+- Special `$` token from lexer produces `\n` character for explicit newlines
 
 ### Expression Statements
 

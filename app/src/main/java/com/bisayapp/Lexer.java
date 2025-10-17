@@ -35,6 +35,10 @@ public class Lexer {
     KEYWORDS.put("UG", TokenType.UG);             // AND
     KEYWORDS.put("O", TokenType.O);               // OR
     KEYWORDS.put("PUNDOK", TokenType.PUNDOK);     // GROUP/BLOCK
+    
+    // Loop keywords
+    KEYWORDS.put("ALANG", TokenType.ALANG);       // FOR
+    KEYWORDS.put("SA", TokenType.SA);             // (part of FOR loop)
   }
 
   /**

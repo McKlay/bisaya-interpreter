@@ -1,6 +1,12 @@
-SUGOD
-	MUGNA TIPIK x = 5.5
-	MUGNA NUMERO x = 9
-    DAWAT: x
-	IPAKITA: x
-KATAPUSAN
+            SUGOD
+            MUGNA NUMERO i
+            ALANG SA (i=1, i<=3, i++)
+            PUNDOK{
+                IPAKITA: i & ' '
+            }
+            IPAKITA: $
+            ALANG SA (i=1, i<=3, i++)
+            PUNDOK{
+                IPAKITA: i & ' '
+            }
+            KATAPUSAN
