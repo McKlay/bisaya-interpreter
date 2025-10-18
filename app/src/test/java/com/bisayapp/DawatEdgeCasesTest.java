@@ -197,7 +197,7 @@ public class DawatEdgeCasesTest {
         String source = """
             SUGOD
                 MUGNA NUMERO x
-                -- DAWAT: x this should be ignored
+                @@ DAWAT: x this should be ignored
                 IPAKITA: x
             KATAPUSAN
             """;

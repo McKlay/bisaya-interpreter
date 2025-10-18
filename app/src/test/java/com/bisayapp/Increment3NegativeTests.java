@@ -422,8 +422,8 @@ public class Increment3NegativeTests {
             MUGNA NUMERO x=10
             KUNG (x > 5)
             PUNDOK{
-            -- this is a comment
-            -- another comment
+            @@ this is a comment
+            @@ another comment
             }
             IPAKITA: "done"
             KATAPUSAN

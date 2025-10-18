@@ -122,44 +122,7 @@ public class Lexer {
       
       // Arithmetic operators
       case '+' -> add(match('+') ? TokenType.PLUS_PLUS : TokenType.PLUS);
-      case '-' -> {
-        if (match('-')) {
-          // This is --
-          // Rule: At start of line, determine if comment or decrement operator
-          if (isAtStartOfLine()) {
-            char next = isAtEnd() ? '\0' : peek();
-            
-            // If followed by whitespace or end, it's definitely a comment
-            if (isAtEnd() || next == ' ' || next == '\n' || next == '\r' || next == '\t') {
-              lineComment();
-            }
-            // If followed by '(', it's a decrement operator on an expression (even if invalid)
-            else if (next == '(') {
-              add(TokenType.MINUS_MINUS);
-            }
-            // If followed by non-identifier character (like punctuation), it's a comment
-            else if (!Character.isJavaIdentifierStart(next) && !Character.isDigit(next)) {
-              lineComment();
-            }
-            // If followed by identifier/digit, check if there's a space later in the line
-            // Comments typically have text: "--this is a comment"
-            // Decrement statements are usually just: "--x"
-            else if (hasSpaceAheadInLine()) {
-              // Has space later = likely comment text
-              lineComment();
-            }
-            else {
-              // No space ahead, likely expression statement like --x
-              add(TokenType.MINUS_MINUS);
-            }
-          } else {
-            // In expression context, always decrement operator
-            add(TokenType.MINUS_MINUS);
-          }
-        } else {
-          add(TokenType.MINUS);
-        }
-      }
+      case '-' -> add(match('-') ? TokenType.MINUS_MINUS : TokenType.MINUS);
       case '*' -> add(TokenType.STAR);
       case '/' -> add(TokenType.SLASH);
       case '%' -> add(TokenType.PERCENT);
@@ -167,6 +130,15 @@ public class Lexer {
       // Special symbols
       case '&' -> add(TokenType.AMPERSAND);
       case '$' -> add(TokenType.DOLLAR);
+      
+      // Comments - @@ to end of line (both inline and start-of-line)
+      case '@' -> {
+        if (match('@')) {
+          lineComment(); // Consume comment to end of line
+        } else {
+          ErrorReporter.error(line, col, "Unexpected character: @");
+        }
+      }
       
       // Comparison operators - supports lookahead for multi-character operators
       case '!' -> add(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
@@ -309,12 +281,13 @@ public class Lexer {
   /**
    * COMMENT PROCESSOR - Consume line comment until newline
    * 
-   * Handles '--' style comments by consuming all characters until end of line.
+   * Handles '@@' style comments by consuming all characters until end of line.
    * Does not generate any tokens (comments are ignored in Bisaya++).
+   * Comments can appear both at the start of a line or inline after code.
    * 
    * Side effects: Advances current position to end of line
    * 
-   * Usage: Called when scanToken() encounters '--' sequence at start of line
+   * Usage: Called when scanToken() encounters '@@' sequence
    */
   private void lineComment() { while (!isAtEnd() && peek() != '\n') advance(); }
 

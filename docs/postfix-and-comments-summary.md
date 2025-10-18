@@ -11,12 +11,13 @@
 - ✅ **Type Preservation**: Works with both NUMERO (integer) and TIPIK (decimal) types
 - ✅ **Expression Integration**: Works in complex expressions like `a++ * b-- + ++c`
 
-### **2. Enhanced Comment Handling**  
-- ✅ **Improved Disambiguation**: Better heuristics to distinguish `--comment` from `--variable`
-- ✅ **Context-Aware Parsing**: Analyzes previous tokens and following characters
-- ✅ **Flexible Spacing**: Supports comments with and without spaces after `--`
-- ✅ **Multiple Comment Styles**: Handles comments after keywords, expressions, end of lines
-- ✅ **Lookahead Logic**: Checks characters following `--` to determine intent
+### **2. Enhanced Comment Handling (@@ syntax)**  
+- ✅ **New Comment Symbol**: Changed from `--` to `@@` to avoid conflict with decrement operator
+- ✅ **Inline Comments**: Full support for comments after code on the same line
+- ✅ **Start-of-Line Comments**: Traditional comment placement still works
+- ✅ **Simplified Logic**: No complex disambiguation needed - `@@` is always a comment
+- ✅ **Flexible Spacing**: Supports comments with and without spaces after `@@`
+- ✅ **Decrement Operator**: `--` is now always treated as decrement operator (prefix or postfix)
 
 ## 🔧 **TECHNICAL IMPLEMENTATION**
 
@@ -38,11 +39,17 @@ primary      → STRING | NUMBER | CHAR | "$" | "(" expression ")" | IDENTIFIER
 
 ### **Lexer Enhancement** 
 ```java
-// Improved comment context detection
-private boolean isInExpressionContext() {
-    // Analyzes previous tokens and lookahead to determine if
-    // '--' should be treated as decrement operator or comment
+// Simplified comment handling with @@ symbol
+case '@' -> {
+    if (match('@')) {
+        lineComment(); // Consume to end of line
+    } else {
+        ErrorReporter.error(line, col, "Unexpected character: @");
+    }
 }
+
+// -- is now always treated as decrement operator
+case '-' -> add(match('-') ? TokenType.MINUS_MINUS : TokenType.MINUS);
 ```
 
 ## ✅ **WORKING EXAMPLES**
@@ -68,19 +75,19 @@ KATAPUSAN
 
 ### **Enhanced Comments**
 ```bisaya
-SUGOD -- program start comment
-MUGNA NUMERO x = 5 -- variable declaration comment
-IPAKITA: x -- output comment  
-KATAPUSAN -- program end comment
+SUGOD @@ program start comment (start-of-line)
+MUGNA NUMERO x = 5 @@ variable declaration (inline comment)
+IPAKITA: x @@ output comment (inline comment)
+KATAPUSAN @@ program end comment (inline comment)
 ```
 
 ### **Complex Expression with Mixed Operators**
 ```bisaya  
 SUGOD
 MUGNA NUMERO x = 3, y = 7, result
-result = ++x * y--    -- prefix increment x, postfix decrement y
-IPAKITA: result       -- Outputs: 28 (4 * 7)
-IPAKITA: x & " " & y  -- Outputs: 4 6
+result = ++x * y--    @@ prefix increment x, postfix decrement y
+IPAKITA: result       @@ Outputs: 28 (4 * 7)
+IPAKITA: x & " " & y  @@ Outputs: 4 6
 KATAPUSAN
 ```
 
@@ -91,7 +98,8 @@ KATAPUSAN
 - ✅ Prefix vs postfix semantic differences
 - ✅ Type preservation (NUMERO/TIPIK)
 - ✅ Complex expression integration  
-- ✅ Comment disambiguation with various contexts
+- ✅ @@ comments (both inline and start-of-line)
+- ✅ Decrement operator (`--`) never conflicts with comments
 - ✅ Edge cases and error handling
 
 ### **Sample Programs Verified**

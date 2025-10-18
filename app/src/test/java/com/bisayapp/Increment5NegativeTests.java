@@ -472,8 +472,8 @@ public class Increment5NegativeTests {
             MUGNA TINUOD flag="OO"
             SAMTANG (flag=="OO")
             PUNDOK{
-            -- just comments
-            -- more comments
+            @@ just comments
+            @@ more comments
                 flag="DILI"
             }
             IPAKITA: "done"

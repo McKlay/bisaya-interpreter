@@ -1,5 +1,5 @@
--- Nested loops example
--- Creates a multiplication table
+@@ Nested loops example
+@@ Creates a multiplication table
 SUGOD
     MUGNA NUMERO row, col, product
     

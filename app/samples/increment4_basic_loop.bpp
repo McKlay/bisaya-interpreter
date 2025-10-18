@@ -1,5 +1,5 @@
--- Basic ALANG SA loop example
--- Prints numbers from 1 to 10
+@@ Basic ALANG SA loop example
+@@ Prints numbers from 1 to 10
 SUGOD
     MUGNA NUMERO ctr
     ALANG SA (ctr=1, ctr<=10, ctr++)

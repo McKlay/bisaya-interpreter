@@ -1,4 +1,4 @@
--- Nested conditionals example - Leap year checker
+@@ Nested conditionals example - Leap year checker
 SUGOD
     MUGNA NUMERO year=2024
     MUGNA TINUOD isLeap="DILI"

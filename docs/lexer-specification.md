@@ -113,6 +113,8 @@ stateDiagram-v2
     CommentContent --> CommentContent: any char except '\n'
     CommentContent --> Scanning: newline reached
     
+    Note right of Comment: @@ comments (inline & start-of-line)
+    
     Whitespace --> Scanning: ignore
     Newline --> TokenGenerated: NEWLINE token
     

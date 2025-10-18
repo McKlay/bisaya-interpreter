@@ -1,34 +1,34 @@
--- Comments Enhancement Demo
--- This program shows improved comment handling without requiring spaces
--- NOTE: Comments ONLY exist at the start of a line
+@@ Comments Enhancement Demo
+@@ This program shows enhanced comment handling with @@ symbol
+@@ NOTE: Comments can now appear both at the start of a line AND inline after code
 
 SUGOD
 
--- Initialize variables
-MUGNA NUMERO counter = 0
+@@ Initialize variables
+MUGNA NUMERO counter = 0 @@ inline comment after declaration
 MUGNA LETRA grade = 'A'
 MUGNA TIPIK price = 99.99
 
--- Loop simulation using increment operators
+@@ Loop simulation using increment operators
 IPAKITA: "Counter demo:" & $
--- postfix increment, old value used
+@@ postfix increment, old value used
 counter++
-IPAKITA: "Step 1: " & counter & $
+IPAKITA: "Step 1: " & counter & $ @@ shows current value
 
--- prefix increment, new value used  
+@@ prefix increment, new value used  
 ++counter
-IPAKITA: "Step 2: " & counter & $
+IPAKITA: "Step 2: " & counter & $ @@ shows incremented value
 
--- increment again
+@@ increment again
 counter++
 IPAKITA: "Step 3: " & counter & $
 
--- Multiple comments with various characters
---!@#$%^&*() special chars work fine
---[];{}|\\:";'<>?,./
+@@ Multiple comments with various characters
+@@!@#$%^&*() special chars work fine
+@@[];{}|\\:";'<>?,./
 IPAKITA: $ & "Final values:" & $
-IPAKITA: "Counter: " & counter
-IPAKITA: "Grade: " & grade
-IPAKITA: "Price: " & price
+IPAKITA: "Counter: " & counter @@ final counter value
+IPAKITA: "Grade: " & grade @@ final grade
+IPAKITA: "Price: " & price @@ final price
 
 KATAPUSAN

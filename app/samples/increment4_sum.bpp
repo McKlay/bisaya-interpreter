@@ -1,5 +1,5 @@
--- Sum calculation using loop
--- Calculates sum of numbers from 1 to 100
+@@ Sum calculation using loop
+@@ Calculates sum of numbers from 1 to 100
 SUGOD
     MUGNA NUMERO i, sum=0
     

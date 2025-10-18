@@ -60,12 +60,12 @@ public class Increment1Tests {
     @Test
     void programMarkersAndComments() {
         String src = """
-            -- header comment
+            @@ header comment
             SUGOD
-              -- inside
+              @@ inside
               IPAKITA: "A" & $
               IPAKITA: "B"
-              -- trailer
+              @@ trailer
             KATAPUSAN
             """;
         assertEquals("A\nB", runSource(src));
@@ -73,15 +73,15 @@ public class Increment1Tests {
 
     @Test
     void commentsCanAppearAnywhere() {
-        // Updated: comments only exist at start of line
+        // Updated: comments can be inline or at start of line
         String src = """
-            -- before SUGOD
+            @@ before SUGOD
             SUGOD
               MUGNA NUMERO x=1
-              -- standalone comment
+              @@ standalone comment
               IPAKITA: x
             KATAPUSAN
-            -- after program
+            @@ after program
             """;
         assertEquals("1", runSource(src));
     }
@@ -89,9 +89,9 @@ public class Increment1Tests {
     @Test
     void emptyProgramWithOnlyComments() {
         String src = """
-            -- only comments
+            @@ only comments
             SUGOD
-              -- nothing here
+              @@ nothing here
             KATAPUSAN
             """;
         assertEquals("", runSource(src));

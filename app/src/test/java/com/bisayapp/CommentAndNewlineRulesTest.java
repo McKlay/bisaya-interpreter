@@ -18,11 +18,11 @@ public class CommentAndNewlineRulesTest {
     void comments_anywhere_and_statement_per_line() {
         String src = """
         SUGOD
-          -- before
+          @@ before
           IPAKITA: "A" & $
-          -- this is now a standalone comment
+          @@ this is now a standalone comment
           IPAKITA: "B"
-          -- after
+          @@ after
         KATAPUSAN
         """;
         String out = run(src);

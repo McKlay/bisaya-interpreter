@@ -518,8 +518,8 @@ public class Increment4NegativeTests {
             MUGNA NUMERO i
             ALANG SA (i=1, i<=3, i++)
             PUNDOK{
-            -- just a comment
-            -- another comment
+            @@ just a comment
+            @@ another comment
             }
             IPAKITA: "done"
             KATAPUSAN

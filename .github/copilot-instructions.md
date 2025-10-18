@@ -8,7 +8,7 @@ Build a fully functional interpreter that can parse, analyze, and execute Bisaya
 **Increment 1**
 Core language recognition and basic operations:
 - Parse program structure (SUGOD/KATAPUSAN keywords)
-- Handle comments (-- prefix) correctly
+- Handle comments (@@ prefix) correctly - supports both start-of-line and inline comments
 - Recognize all reserved words and prevent their use as variable names
 - Implement variable declaration with MUGNA keyword
 - Support variable assignment operations (including chained assignments like x=y=4)
@@ -18,7 +18,7 @@ Core language recognition and basic operations:
 
 **Increment 2**
 Operators and input functionality:
-- Implement unary operators: +, -, ++, --
+- Implement unary operators: +, -, ++, -- (decrement operator)
 - Add DAWAT command for user input (comma-separated values)
 - Support arithmetic operations: +, -, *, /, %
 - Implement comparison operators: >, <, >=, <=, ==, <>
@@ -96,14 +96,14 @@ Bisaya++ is a strongly–typed high–level interpreted Cebuano-based programmin
 the basics of programming. Its simple syntax and native keywords make programming easy to learn.
 
 Sample Program:
--- this is a sample program in Bisaya++
+@@ this is a sample program in Bisaya++
 SUGOD
 MUGNA NUMERO x, y, z=5
 MUGNA LETRA a_1='n'
 MUGNA TINUOD t="OO"
 x=y=4
 a_1='c'
--- this is a comment
+@@ this is a comment
 IPAKITA: x & t & z & $ & a_1 & [&] & "last"
 KATAPUSAN
 
@@ -118,7 +118,7 @@ c&last
 - all variable declaration starts with MUGNA
 - all variable names are case sensitive and starts with letter or an underscore (_) and followed by a letter, underscore or digits.
 - every line contains a single statement
-- comments starts with double minus sign(--) and it can be placed anywhere in the program but only at the start of the line
+- comments start with double at sign (@@) and can be placed at the start of the line or inline after code
 - all reserved words are in capital letters and cannot be used as variable names
 - dollar sign($) signifies next line or carriage return
 - ampersand(&) serves as a concatenator
@@ -151,7 +151,7 @@ DILI - FALSE
 + - positive
 - - negative
 ++ - increment
--- - decrement
+-- - decrement (double minus operator, not to be confused with @@ comment symbol)
 
 **Sample Programs**
 1. A program with arithmetic operation

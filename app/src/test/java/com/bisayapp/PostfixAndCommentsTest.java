@@ -144,15 +144,15 @@ public class PostfixAndCommentsTest {
     }
     
     // ========================================================================================
-    // IMPROVED COMMENT HANDLING TESTS (Updated for "comments only at start of line" rule)
+    // IMPROVED COMMENT HANDLING TESTS (Updated for @@ comment syntax)
     // ========================================================================================
     
     @Test
-    @DisplayName("Comments without spaces after --")
+    @DisplayName("Comments without spaces after @@")
     public void testCommentsWithoutSpaces() {
         String program = """
             SUGOD
-            --this is a comment without space after --
+            @@this is a comment without space after @@
             MUGNA NUMERO x = 5
             IPAKITA: x
             KATAPUSAN
@@ -167,7 +167,7 @@ public class PostfixAndCommentsTest {
     public void testCommentsWithPunctuation() {
         String program = """
             SUGOD
-            --!@#$%^&*() special characters in comment
+            @@!@#$%^&*() special characters in comment
             MUGNA NUMERO x = 10
             IPAKITA: x
             KATAPUSAN
@@ -178,12 +178,12 @@ public class PostfixAndCommentsTest {
     }
     
     @Test
-    @DisplayName("Decrement operator vs comment disambiguation")
-    public void testDecrementVsComment() {
+    @DisplayName("Prefix decrement and comment on separate lines")
+    public void testDecrementAndComment() {
         String program = """
             SUGOD
             MUGNA NUMERO x = 10, y = 5
-            -- decrement y in expression (comment at line start)
+            @@ decrement y in expression (comment at line start)
             x = x + --y
             IPAKITA: x & " " & y
             KATAPUSAN
@@ -194,18 +194,18 @@ public class PostfixAndCommentsTest {
     }
     
     @Test
-    @DisplayName("Comment vs prefix decrement at start of line")
+    @DisplayName("Comment at start of line with prefix decrement below")
     public void testCommentVsPrefixDecrementAtLineStart() {
         String program = """
             SUGOD
             MUGNA NUMERO x = 10
-            -- this is a comment with space
+            @@ this is a comment with space
             --x
             IPAKITA: x
             KATAPUSAN
             """;
         
-        // --x at start of line (no space after --) is prefix decrement
+        // --x is prefix decrement, not affected by @@ comments
         String expected = "9";
         assertEquals(expected, runProgram(program));
     }
@@ -215,7 +215,7 @@ public class PostfixAndCommentsTest {
     public void testCommentsWithUnderscoreIdentifiers() {
         String program = """
             SUGOD
-            --comment with underscore_identifiers
+            @@comment with underscore_identifiers
             MUGNA NUMERO test_var = 100
             IPAKITA: test_var
             KATAPUSAN
