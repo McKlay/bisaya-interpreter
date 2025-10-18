@@ -39,6 +39,7 @@ public class Lexer {
     // Loop keywords
     KEYWORDS.put("ALANG", TokenType.ALANG);       // FOR
     KEYWORDS.put("SA", TokenType.SA);             // (part of FOR loop)
+    KEYWORDS.put("SAMTANG", TokenType.SAMTANG);   // WHILE
   }
 
   /**

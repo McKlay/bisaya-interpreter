@@ -1,0 +1,16 @@
+-- Increment 5: SAMTANG with Conditional
+-- This program uses a while loop with a conditional inside to print even numbers
+
+SUGOD
+MUGNA NUMERO x = 1
+IPAKITA: "Even numbers from 1 to 10:" & $
+SAMTANG (x <= 10)
+PUNDOK{
+    KUNG (x % 2 == 0)
+    PUNDOK{
+        IPAKITA: x & " "
+    }
+    x = x + 1
+}
+IPAKITA: $
+KATAPUSAN

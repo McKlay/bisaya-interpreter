@@ -34,8 +34,14 @@ Conditional control structures:
 - Ensure proper boolean expression evaluation
 
 **Increment 4**
-Loop implementation:
-- Execute WHILE loops (syntax to be clarified based on specification)
+Loop implementation: ALANG SA (FOR LOOP)
+- Execute FOR loops
+- Support nested FOR loops
+- Ensure proper loop termination and variable scope
+
+**Increment 5**
+Loop implementation: SAMTANG (WHILE LOOP)
+- Execute WHILE loops
 - Support nested WHILE loops
 - Ensure proper loop termination and variable scope
 
@@ -227,7 +233,8 @@ OO
 
 2. Loop Control Flow Structures
 
-    a. ALANG SA (initialization, condition, update) - (FOR LOOP)
+    a. ALANG SA (FOR LOOP)
+        ALANG SA (initialization, condition, update)
         PUNDOK{
             <statement>
             …
@@ -241,5 +248,27 @@ OO
         }
         Output:
         1 2 3 4 5 6 7 8 9 10
+
+    b. SAMTANG (<BOOL expression>) – (WHILE LOOP)
+        SAMTANG (<BOOL expression>)
+        PUNDOK{
+            <statement>
+            …
+            <statement>
+        }
+
+        Example:
+        MUGNA NUMERO ctr = 1
+        SAMTANG (ctr <= 5)
+        PUNDOK{
+            IPAKITA: "Count: " & ctr & $
+            ctr = ctr + 1
+        }
+        Output:
+        Count: 1
+        Count: 2
+        Count: 3
+        Count: 4
+        Count: 5
 
 Note: Additional features may be added as needed, but the core requirements must be met as specified.

@@ -1,0 +1,19 @@
+-- Increment 5: Nested SAMTANG (Nested While Loops)
+-- This program demonstrates nested while loops to create a multiplication table
+
+SUGOD
+MUGNA NUMERO i = 1, j, product
+IPAKITA: "Multiplication Table (3x3):" & $
+SAMTANG (i <= 3)
+PUNDOK{
+    j = 1
+    SAMTANG (j <= 3)
+    PUNDOK{
+        product = i * j
+        IPAKITA: product & " "
+        j = j + 1
+    }
+    IPAKITA: $
+    i = i + 1
+}
+KATAPUSAN

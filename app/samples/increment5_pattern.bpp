@@ -1,0 +1,18 @@
+-- Increment 5: SAMTANG Pattern Printing
+-- This program prints a triangle pattern using nested while loops
+
+SUGOD
+MUGNA NUMERO row = 1, col
+IPAKITA: "Triangle Pattern:" & $
+SAMTANG (row <= 5)
+PUNDOK{
+    col = 1
+    SAMTANG (col <= row)
+    PUNDOK{
+        IPAKITA: "*"
+        col = col + 1
+    }
+    IPAKITA: $
+    row = row + 1
+}
+KATAPUSAN

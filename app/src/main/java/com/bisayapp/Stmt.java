@@ -11,6 +11,7 @@ public abstract class Stmt {
         R visitIf(If s);
         R visitBlock(Block s);
         R visitFor(For s);
+        R visitWhile(While s);
     }
 
     public static final class Print extends Stmt {
@@ -74,6 +75,17 @@ public abstract class Stmt {
             this.body = body;
         }
         @Override public <R> R accept(Visitor<R> v) { return v.visitFor(this); }
+    }
+
+    public static final class While extends Stmt {
+        public final Expr condition;    // Loop condition
+        public final Stmt body;         // Loop body (PUNDOK{...})
+        
+        public While(Expr condition, Stmt body) {
+            this.condition = condition;
+            this.body = body;
+        }
+        @Override public <R> R accept(Visitor<R> v) { return v.visitWhile(this); }
     }
 
     public abstract <R> R accept(Visitor<R> v);

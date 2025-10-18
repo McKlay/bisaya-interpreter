@@ -106,6 +106,7 @@ public class Parser {
         if (match(TokenType.MUGNA))   return varDecl();
         if (match(TokenType.KUNG))    return ifStmt();
         if (match(TokenType.ALANG))   return forStmt();
+        if (match(TokenType.SAMTANG)) return whileStmt();
         if (match(TokenType.PUNDOK))  return block();
         return exprStmt(); // Default: treat as expression statement (assignments, etc.)
     }
@@ -403,6 +404,35 @@ public class Parser {
         Stmt body = block();
         
         return new Stmt.For(initializer, condition, update, body);
+    }
+
+    /**
+     * Parses SAMTANG (while loop) statements
+     * 
+     * Grammar: SAMTANG "(" condition ")" PUNDOK "{" statement* "}"
+     * 
+     * Example: SAMTANG (ctr <= 5) PUNDOK{ ... }
+     * 
+     * @return While statement AST node
+     * @throws ParseError if while loop syntax is invalid
+     */
+    private Stmt whileStmt() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'SAMTANG'.");
+        skipNewlines();
+        
+        // Parse condition expression
+        Expr condition = assignment();
+        skipNewlines();
+        
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        skipNewlines();
+        
+        // Parse body (must be PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after SAMTANG condition.");
+        Stmt body = block();
+        
+        return new Stmt.While(condition, body);
     }
 
     /**
