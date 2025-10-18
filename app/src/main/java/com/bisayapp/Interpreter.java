@@ -513,10 +513,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     private boolean isTruthy(Object value) {
-        if (value == null) return false;
-        if (value instanceof Boolean b) return b;
-        if (value instanceof String s) return s.equals("OO");
-        return true;
+        if (value == null) {
+            throw new RuntimeException("Condition cannot be null");
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s) {
+            if (s.equals("OO")) return true;
+            if (s.equals("DILI")) return false;
+            throw new RuntimeException("String '" + s + "' cannot be used as boolean condition. Use 'OO' or 'DILI'");
+        }
+        if (value instanceof Integer || value instanceof Float) {
+            throw new RuntimeException("NUMERO/TIPIK value cannot be used as boolean condition. Use comparison operators (>, <, ==, etc.)");
+        }
+        if (value instanceof Character) {
+            throw new RuntimeException("LETRA value cannot be used as boolean condition");
+        }
+        throw new RuntimeException("Invalid type for boolean condition: " + value.getClass().getSimpleName());
     }
 
     private String stringify(Object v) {
