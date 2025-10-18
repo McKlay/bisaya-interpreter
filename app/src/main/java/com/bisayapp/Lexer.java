@@ -133,6 +133,10 @@ public class Lexer {
             if (isAtEnd() || next == ' ' || next == '\n' || next == '\r' || next == '\t') {
               lineComment();
             }
+            // If followed by '(', it's a decrement operator on an expression (even if invalid)
+            else if (next == '(') {
+              add(TokenType.MINUS_MINUS);
+            }
             // If followed by non-identifier character (like punctuation), it's a comment
             else if (!Character.isJavaIdentifierStart(next) && !Character.isDigit(next)) {
               lineComment();
@@ -488,6 +492,20 @@ public class Lexer {
     // Optional fractional part
     if (peek() == '.' && isDigit(peekNext())) {
       advance(); // consume the '.'
+      while (isDigit(peek())) advance();
+    }
+    // Optional scientific notation (e.g., 1.5E10, 2e-5)
+    if (peek() == 'E' || peek() == 'e') {
+      advance(); // consume 'E' or 'e'
+      // Optional sign
+      if (peek() == '+' || peek() == '-') {
+        advance();
+      }
+      // Exponent digits (required)
+      if (!isDigit(peek())) {
+        ErrorReporter.error(line, col, "Invalid scientific notation: expected digits after 'E'");
+        return;
+      }
       while (isDigit(peek())) advance();
     }
     String text = src.substring(start, current);

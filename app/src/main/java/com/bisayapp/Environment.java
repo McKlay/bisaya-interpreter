@@ -43,9 +43,13 @@ public class Environment {
             case NUMERO -> {
                 // TODO: Fixed - NUMERO should reject decimal values
                 if (v instanceof Double d) {
-                    if (d != d.intValue()) {
+                    // Check if the double has a fractional part
+                    // Allow overflow/underflow values (they will wrap automatically)
+                    double fractionalPart = d - Math.floor(d);
+                    if (fractionalPart != 0.0) {
                         throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + d);
                     }
+                    // Allow integer overflow/underflow - Java will wrap automatically
                     return Integer.valueOf(d.intValue());
                 }
                 if (v instanceof Number n) return Integer.valueOf(n.intValue());
