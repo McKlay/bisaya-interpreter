@@ -562,7 +562,7 @@ public class Increment5NegativeTests {
     }
 
     @Test
-    @DisplayName("EDGE: Variable declared inside loop (scope test)")
+    @DisplayName("NEG: Variable declared inside loop cannot be redeclared")
     void testVariableDeclaredInsideWhile() {
         String src = """
             SUGOD
@@ -575,9 +575,10 @@ public class Increment5NegativeTests {
             }
             KATAPUSAN
             """;
-        // y is declared each iteration
-        String output = runProgram(src);
-        assertEquals("10 10 10 ", output);
+        // Variable y cannot be declared multiple times in loop iterations
+        RuntimeException ex = assertThrows(RuntimeException.class, () -> runProgram(src));
+        assertTrue(ex.getMessage().contains("already declared"), 
+            "Should report variable already declared: " + ex.getMessage());
     }
 
     // ====================================================================
