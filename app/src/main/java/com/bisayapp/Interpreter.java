@@ -40,7 +40,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitInput(Stmt.Input s) {
-        String line = scanner.nextLine().trim();
+        String line;
+        try {
+            if (!scanner.hasNextLine()) {
+                throw new RuntimeException("DAWAT: No input available (empty input stream)");
+            }
+            line = scanner.nextLine().trim();
+        } catch (java.util.NoSuchElementException e) {
+            throw new RuntimeException("DAWAT: No input available (empty input stream)");
+        }
+        
         String[] values = line.split(",");
         
         if (values.length != s.varNames.size()) {
@@ -78,8 +87,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private Object parseInputValue(String input, TokenType type, String varName) {
         // Check for empty input first
         if (input.isEmpty()) {
-            throw new RuntimeException("DAWAT: Empty input for variable '" + varName + 
-                "' of type " + type);
+            String msg = "DAWAT: empty input for variable '" + varName + "' of type " + type;
+            if (type == TokenType.LETRA) {
+                msg = "DAWAT: LETRA requires exactly one character, but got empty input for variable '" + varName + "'";
+            }
+            throw new RuntimeException(msg);
         }
         
         try {
@@ -394,7 +406,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
      */
     private Number requireNumber(Object value, Token operator) {
         if (value instanceof Number n) return n;
-        throw runtimeError(operator, "Operand must be a number for operator '" + operator.lexeme + "'. Got: " + getTypeName(value));
+        throw runtimeError(operator, "type error: operand must be a number for operator '" + operator.lexeme + "'. Got: " + getTypeName(value));
     }
     
     /**

@@ -850,7 +850,7 @@ public class Parser {
      */
     ParseError error(Token token, String message) {
         ErrorReporter.error(token.line, token.col, message);
-        return new ParseError();
+        return new ParseError(message, token);
     }
 
     /**
@@ -859,5 +859,13 @@ public class Parser {
      * Extends RuntimeException to allow throwing without explicit declaration
      * Used for panic-mode error recovery in recursive descent parsing
      */
-    static class ParseError extends RuntimeException {}
+    static class ParseError extends RuntimeException {
+        public ParseError() {
+            super();
+        }
+        
+        public ParseError(String message, Token token) {
+            super("[line " + token.line + " col " + token.col + "] " + message);
+        }
+    }
 }
