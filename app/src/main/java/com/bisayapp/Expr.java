@@ -18,8 +18,12 @@ public abstract class Expr {
     }
 
     public static final class Variable extends Expr {
+        public final Token token;
         public final String name;
-        public Variable(String name) { this.name = name; }
+        public Variable(Token token, String name) { 
+            this.token = token;
+            this.name = name; 
+        }
         @Override public <R> R accept(Visitor<R> v) { return v.visitVariable(this); }
     }
 

@@ -39,8 +39,12 @@ public abstract class Stmt {
     }
 
     public static final class Input extends Stmt {
+        public final Token dawatToken;
         public final List<String> varNames;
-        public Input(List<String> varNames) { this.varNames = varNames; }
+        public Input(Token dawatToken, List<String> varNames) { 
+            this.dawatToken = dawatToken;
+            this.varNames = varNames; 
+        }
         @Override public <R> R accept(Visitor<R> v) { return v.visitInput(this); }
     }
 

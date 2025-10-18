@@ -43,17 +43,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         String line;
         try {
             if (!scanner.hasNextLine()) {
-                throw new RuntimeException("DAWAT: No input available (empty input stream)");
+                throw runtimeError(s.dawatToken, "DAWAT: No input available (empty input stream)");
             }
             line = scanner.nextLine().trim();
         } catch (java.util.NoSuchElementException e) {
-            throw new RuntimeException("DAWAT: No input available (empty input stream)");
+            throw runtimeError(s.dawatToken, "DAWAT: No input available (empty input stream)");
         }
         
         String[] values = line.split(",");
         
         if (values.length != s.varNames.size()) {
-            throw new RuntimeException("DAWAT expects " + s.varNames.size() + 
+            throw runtimeError(s.dawatToken, "DAWAT expects " + s.varNames.size() + 
                 " value(s), but got " + values.length);
         }
         
@@ -63,8 +63,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             
             // Check if variable exists - MUST check before getType()
             if (!env.isDeclared(varName)) {
-                throw new RuntimeException("Undefined variable '" + varName + 
-                    "'. Variables must be declared with MUGNA before using DAWAT.");
+                throw runtimeError(s.dawatToken, "Undefined variable '" + varName + 
+                    "'. Variables must be declared with MUGNA before using in DAWAT.");
             }
             
             // Get the variable's type (safe now, we know it exists)
@@ -72,26 +72,26 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             
             // Validate we have a non-null type
             if (type == null) {
-                throw new RuntimeException("Internal error: Variable '" + varName + 
+                throw runtimeError(s.dawatToken, "Internal error: Variable '" + varName + 
                     "' exists but has no type information.");
             }
             
             // Parse and validate the input value
-            Object value = parseInputValue(inputValue, type, varName);
+            Object value = parseInputValue(inputValue, type, varName, s.dawatToken);
             env.assign(varName, value);
         }
         
         return null;
     }
 
-    private Object parseInputValue(String input, TokenType type, String varName) {
+    private Object parseInputValue(String input, TokenType type, String varName, Token dawatToken) {
         // Check for empty input first
         if (input.isEmpty()) {
             String msg = "DAWAT: empty input for variable '" + varName + "' of type " + type;
             if (type == TokenType.LETRA) {
                 msg = "DAWAT: LETRA requires exactly one character, but got empty input for variable '" + varName + "'";
             }
-            throw new RuntimeException(msg);
+            throw runtimeError(dawatToken, msg);
         }
         
         try {
@@ -99,7 +99,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 case NUMERO -> {
                     // Parse as integer
                     if (input.contains(".")) {
-                        throw new RuntimeException("DAWAT: NUMERO cannot have decimal values. Got: " + input);
+                        throw runtimeError(dawatToken, "DAWAT: NUMERO cannot have decimal values. Got: " + input);
                     }
                     return Integer.valueOf(input);
                 }
@@ -110,7 +110,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 case LETRA -> {
                     // Must be single character
                     if (input.length() != 1) {
-                        throw new RuntimeException("DAWAT: LETRA must be exactly one character. Got: '" + input + "' (length: " + input.length() + ")");
+                        throw runtimeError(dawatToken, "DAWAT: LETRA must be exactly one character. Got: '" + input + "' (length: " + input.length() + ")");
                     }
                     return input.charAt(0);
                 }
@@ -118,12 +118,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     // Must be "OO" or "DILI"
                     if (input.equals("OO")) return true;
                     if (input.equals("DILI")) return false;
-                    throw new RuntimeException("DAWAT: TINUOD must be 'OO' or 'DILI'. Got: " + input);
+                    throw runtimeError(dawatToken, "DAWAT: TINUOD must be 'OO' or 'DILI'. Got: " + input);
                 }
-                default -> throw new RuntimeException("DAWAT: Unknown type: " + type);
+                default -> throw runtimeError(dawatToken, "DAWAT: Unknown type: " + type);
             }
         } catch (NumberFormatException e) {
-            throw new RuntimeException("DAWAT: Invalid " + type + " value: '" + input + "'");
+            throw runtimeError(dawatToken, "DAWAT: Invalid " + type + " value: '" + input + "'");
         }
     }
 
@@ -201,7 +201,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitVariable(Expr.Variable e) {
-        Object v = env.get(e.name);
+        Object v = env.get(e.name, e.token);
         TokenType t = env.getType(e.name);
         if (t == TokenType.TINUOD && v instanceof Boolean b) {
             return b ? "OO" : "DILI";

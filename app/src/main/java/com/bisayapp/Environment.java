@@ -29,8 +29,11 @@ public class Environment {
         values.put(name, t == null ? value : coerce(t, value));
     }
 
-    public Object get(String name) {
-        if (!values.containsKey(name)) throw new RuntimeException("Undefined variable '" + name + "'");
+    public Object get(String name, Token token) {
+        if (!values.containsKey(name)) {
+            throw new RuntimeException("[line " + token.line + " col " + token.col + 
+                "] Undefined variable '" + name + "'. Variables must be declared with MUGNA before use.");
+        }
         return values.get(name);
     }
 

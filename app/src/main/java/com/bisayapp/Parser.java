@@ -152,6 +152,7 @@ public class Parser {
      * @throws ParseError if input statement syntax is invalid
      */
     private Stmt inputStmt() {
+        Token dawatToken = previous(); // Store the DAWAT token for error reporting
         consume(TokenType.COLON, "Expect ':' after DAWAT.");
         
         List<String> varNames = new ArrayList<>();
@@ -192,7 +193,7 @@ public class Parser {
             throw error(peek(), "Expected newline or end of program after DAWAT statement.");
         }
 
-        return new Stmt.Input(varNames);
+        return new Stmt.Input(dawatToken, varNames);
     }
 
     /**
@@ -698,7 +699,10 @@ public class Parser {
             return new Expr.Grouping(expr);
         }
         
-        if (match(TokenType.IDENTIFIER)) return new Expr.Variable(previous().lexeme);
+        if (match(TokenType.IDENTIFIER)) {
+            Token identToken = previous();
+            return new Expr.Variable(identToken, identToken.lexeme);
+        }
         
         throw error(peek(), "Expect expression.");
     }
