@@ -524,7 +524,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             if (s.equals("DILI")) return false;
             throw new RuntimeException("String '" + s + "' cannot be used as boolean condition. Use 'OO' or 'DILI'");
         }
-        if (value instanceof Integer || value instanceof Float) {
+        if (value instanceof Number) {
             throw new RuntimeException("NUMERO/TIPIK value cannot be used as boolean condition. Use comparison operators (>, <, ==, etc.)");
         }
         if (value instanceof Character) {
@@ -535,6 +535,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private String stringify(Object v) {
         if (v == null) return "null";
+        if (v instanceof Double d) {
+            // Display double without unnecessary decimals (e.g., 4.0 -> 4)
+            if (d == d.intValue()) return String.valueOf(d.intValue());
+            return v.toString();
+        }
         if (v instanceof Float f) {
             // Display float without unnecessary decimals (e.g., 4.0 -> 4)
             if (f == f.intValue()) return String.valueOf(f.intValue());

@@ -370,9 +370,9 @@ All Increment 3 features work seamlessly with:
 - **Increment 1:** Variable declarations (MUGNA), assignments, IPAKITA output
 - **Increment 2:** Arithmetic operators, comparison operators, logical operators, DAWAT input
 
-**Backward Compatibility:** ✅ Increment 3 changes do not break Increment 2 functionality
+**Backward Compatibility:** ✅ All increment tests pass together
 
-**Note:** Some Increment 1 tests have pre-existing failures (4 tests related to NUMERO decimal handling). These existed before Increment 3 implementation and are not related to conditional control structures.
+**Note:** The 4 previously failing Increment 1 tests (related to NUMERO decimal handling and number display) have been fixed. All 62 Increment 1 tests now pass. See `INCREMENT1-BUG-FIXES.md` for details.
 
 ---
 

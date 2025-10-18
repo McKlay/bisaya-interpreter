@@ -1,9 +1,11 @@
 package com.bisayapp;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test Suite for Increment 4: Loop Implementation (ALANG SA - FOR loops)
@@ -17,6 +19,7 @@ import java.io.*;
  * 6. Edge cases (zero iterations, single iteration)
  * 7. Loop variable scope
  */
+@Timeout(value = 5, unit = TimeUnit.SECONDS)
 public class Increment4Tests {
 
     /**
