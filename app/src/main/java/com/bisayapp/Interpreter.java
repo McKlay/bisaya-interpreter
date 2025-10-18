@@ -104,8 +104,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     return Integer.valueOf(input);
                 }
                 case TIPIK -> {
-                    // Parse as double
-                    return Double.valueOf(input);
+                    // Parse as float (better precision for decimal display)
+                    return Float.valueOf(input);
                 }
                 case LETRA -> {
                     // Must be single character
@@ -299,7 +299,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 if (num instanceof Integer) {
                     return -num.intValue();
                 }
-                return -num.doubleValue();
+                return -num.floatValue();
             
             case MINUS_MINUS:
                 // Decrement operator
@@ -309,7 +309,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     if (n instanceof Integer) {
                         result = n.intValue() - 1;
                     } else {
-                        result = n.doubleValue() - 1.0;
+                        result = n.floatValue() - 1.0f;
                     }
                     env.assign(var.name, result);
                     return result;
@@ -328,7 +328,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     if (n instanceof Integer) {
                         result = n.intValue() + 1;
                     } else {
-                        result = n.doubleValue() + 1.0;
+                        result = n.floatValue() + 1.0f;
                     }
                     env.assign(var.name, result);
                     return result;
@@ -358,7 +358,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     if (n instanceof Integer) {
                         newValue = n.intValue() + 1;
                     } else {
-                        newValue = n.doubleValue() + 1.0;
+                        newValue = n.floatValue() + 1.0f;
                     }
                     env.assign(var.name, newValue);
                     return oldValue; // Return old value for postfix
@@ -374,7 +374,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     if (n instanceof Integer) {
                         newValue = n.intValue() - 1;
                     } else {
-                        newValue = n.doubleValue() - 1.0;
+                        newValue = n.floatValue() - 1.0f;
                     }
                     env.assign(var.name, newValue);
                     return oldValue; // Return old value for postfix
@@ -426,7 +426,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private String getTypeName(Object value) {
         if (value == null) return "null";
         if (value instanceof Integer) return "NUMERO";
-        if (value instanceof Double) return "TIPIK";
+        if (value instanceof Float) return "TIPIK";
         if (value instanceof Character) return "LETRA";
         if (value instanceof Boolean) return "TINUOD";
         if (value instanceof String) return "text";
@@ -440,7 +440,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (l instanceof Integer && r instanceof Integer) {
             return l.intValue() + r.intValue();
         }
-        return l.doubleValue() + r.doubleValue();
+        return l.floatValue() + r.floatValue();
     }
 
     private Object subtractNumbers(Object left, Object right, Token operator) {
@@ -450,7 +450,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (l instanceof Integer && r instanceof Integer) {
             return l.intValue() - r.intValue();
         }
-        return l.doubleValue() - r.doubleValue();
+        return l.floatValue() - r.floatValue();
     }
 
     private Object multiplyNumbers(Object left, Object right, Token operator) {
@@ -460,53 +460,53 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (l instanceof Integer && r instanceof Integer) {
             return l.intValue() * r.intValue();
         }
-        return l.doubleValue() * r.doubleValue();
+        return l.floatValue() * r.floatValue();
     }
 
     private Object divideNumbers(Object left, Object right, Token operator) {
         Number l = requireNumber(left, operator);
         Number r = requireNumber(right, operator);
         
-        if (r.doubleValue() == 0.0) {
+        if (r.floatValue() == 0.0f) {
             throw runtimeError(operator, "Division by zero.");
         }
         
         if (l instanceof Integer && r instanceof Integer) {
             return l.intValue() / r.intValue();
         }
-        return l.doubleValue() / r.doubleValue();
+        return l.floatValue() / r.floatValue();
     }
 
     private Object moduloNumbers(Object left, Object right, Token operator) {
         Number l = requireNumber(left, operator);
         Number r = requireNumber(right, operator);
         
-        if (r.doubleValue() == 0.0) {
+        if (r.floatValue() == 0.0f) {
             throw runtimeError(operator, "Modulo by zero.");
         }
         
         if (l instanceof Integer && r instanceof Integer) {
             return l.intValue() % r.intValue();
         }
-        return l.doubleValue() % r.doubleValue();
+        return l.floatValue() % r.floatValue();
     }
 
     private int compareNumbers(Object left, Object right, Token operator) {
         Number l = requireNumber(left, operator);
         Number r = requireNumber(right, operator);
         
-        return Double.compare(l.doubleValue(), r.doubleValue());
+        return Float.compare(l.floatValue(), r.floatValue());
     }
 
     private boolean isEqual(Object left, Object right) {
         if (left == null && right == null) return true;
         if (left == null) return false;
         
-        // Handle numeric comparisons (Integer vs Double, etc.)
+        // Handle numeric comparisons (Integer vs Float, etc.)
         if (left instanceof Number && right instanceof Number) {
             Number l = (Number) left;
             Number r = (Number) right;
-            return Double.compare(l.doubleValue(), r.doubleValue()) == 0;
+            return Float.compare(l.floatValue(), r.floatValue()) == 0;
         }
         
         return left.equals(right);
@@ -521,8 +521,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private String stringify(Object v) {
         if (v == null) return "null";
-        if (v instanceof Double d) {
-            if (d == d.intValue()) return String.valueOf(d.intValue());
+        if (v instanceof Float f) {
+            // Display float without unnecessary decimals (e.g., 4.0 -> 4)
+            if (f == f.intValue()) return String.valueOf(f.intValue());
             return v.toString();
         }
         if (v instanceof Boolean b) {

@@ -45,15 +45,15 @@ public class Environment {
         switch (t) {
             case NUMERO -> {
                 // TODO: Fixed - NUMERO should reject decimal values
-                if (v instanceof Double d) {
-                    // Check if the double has a fractional part
+                if (v instanceof Float f) {
+                    // Check if the float has a fractional part
                     // Allow overflow/underflow values (they will wrap automatically)
-                    double fractionalPart = d - Math.floor(d);
-                    if (fractionalPart != 0.0) {
-                        throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + d);
+                    float fractionalPart = f - (float)Math.floor(f);
+                    if (fractionalPart != 0.0f) {
+                        throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + f);
                     }
                     // Allow integer overflow/underflow - Java will wrap automatically
-                    return Integer.valueOf(d.intValue());
+                    return Integer.valueOf(f.intValue());
                 }
                 if (v instanceof Number n) return Integer.valueOf(n.intValue());
                 if (v instanceof String s && s.matches("-?\\d+")) return Integer.valueOf(s);
@@ -62,8 +62,8 @@ public class Environment {
                 }
             }
             case TIPIK -> {
-                if (v instanceof Number n) return Double.valueOf(n.doubleValue());
-                if (v instanceof String s && s.matches("-?\\d+(\\.\\d+)?")) return Double.valueOf(s);
+                if (v instanceof Number n) return Float.valueOf(n.floatValue());
+                if (v instanceof String s && s.matches("-?\\d+(\\.\\d+)?")) return Float.valueOf(s);
             }
             case LETRA -> {
                 if (v instanceof Character c) return c;
