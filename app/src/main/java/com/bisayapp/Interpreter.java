@@ -52,28 +52,42 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             String varName = s.varNames.get(i);
             String inputValue = values[i].trim();
             
-            // Check if variable exists
+            // Check if variable exists - MUST check before getType()
             if (!env.isDeclared(varName)) {
                 throw new RuntimeException("Undefined variable '" + varName + 
                     "'. Variables must be declared with MUGNA before using DAWAT.");
             }
             
-            // Parse the input value based on the variable's type
+            // Get the variable's type (safe now, we know it exists)
             TokenType type = env.getType(varName);
-            Object value = parseInputValue(inputValue, type);
+            
+            // Validate we have a non-null type
+            if (type == null) {
+                throw new RuntimeException("Internal error: Variable '" + varName + 
+                    "' exists but has no type information.");
+            }
+            
+            // Parse and validate the input value
+            Object value = parseInputValue(inputValue, type, varName);
             env.assign(varName, value);
         }
         
         return null;
     }
 
-    private Object parseInputValue(String input, TokenType type) {
+    private Object parseInputValue(String input, TokenType type, String varName) {
+        // Check for empty input first
+        if (input.isEmpty()) {
+            throw new RuntimeException("DAWAT: Empty input for variable '" + varName + 
+                "' of type " + type);
+        }
+        
         try {
             switch (type) {
                 case NUMERO -> {
                     // Parse as integer
                     if (input.contains(".")) {
-                        throw new RuntimeException("NUMERO cannot have decimal values. Got: " + input);
+                        throw new RuntimeException("DAWAT: NUMERO cannot have decimal values. Got: " + input);
                     }
                     return Integer.valueOf(input);
                 }
@@ -84,7 +98,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 case LETRA -> {
                     // Must be single character
                     if (input.length() != 1) {
-                        throw new RuntimeException("LETRA must be exactly one character. Got: " + input);
+                        throw new RuntimeException("DAWAT: LETRA must be exactly one character. Got: '" + input + "' (length: " + input.length() + ")");
                     }
                     return input.charAt(0);
                 }
@@ -92,12 +106,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     // Must be "OO" or "DILI"
                     if (input.equals("OO")) return true;
                     if (input.equals("DILI")) return false;
-                    throw new RuntimeException("TINUOD must be 'OO' or 'DILI'. Got: " + input);
+                    throw new RuntimeException("DAWAT: TINUOD must be 'OO' or 'DILI'. Got: " + input);
                 }
-                default -> throw new RuntimeException("Unknown type: " + type);
+                default -> throw new RuntimeException("DAWAT: Unknown type: " + type);
             }
         } catch (NumberFormatException e) {
-            throw new RuntimeException("Invalid input for type " + type + ": " + input);
+            throw new RuntimeException("DAWAT: Invalid " + type + " value: '" + input + "'");
         }
     }
 
@@ -201,17 +215,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         // Handle short-circuit operators FIRST, before evaluating right operand
         // This prevents unnecessary evaluation and potential runtime errors
         if (e.operator.type == TokenType.UG) { // AND operator
+            // Both operands must be boolean
+            boolean leftBool = requireBoolean(left, e.operator, "UG operator (AND)");
             // If left is false, result is always false - don't evaluate right
-            if (!isTruthy(left)) return false;
+            if (!leftBool) return false;
             // Only evaluate right if left is true
-            return isTruthy(eval(e.right));
+            Object right = eval(e.right);
+            boolean rightBool = requireBoolean(right, e.operator, "UG operator (AND)");
+            return rightBool;
         }
         
         if (e.operator.type == TokenType.O) { // OR operator
+            // Both operands must be boolean
+            boolean leftBool = requireBoolean(left, e.operator, "O operator (OR)");
             // If left is true, result is always true - don't evaluate right
-            if (isTruthy(left)) return true;
+            if (leftBool) return true;
             // Only evaluate right if left is false
-            return isTruthy(eval(e.right));
+            Object right = eval(e.right);
+            boolean rightBool = requireBoolean(right, e.operator, "O operator (OR)");
+            return rightBool;
         }
         
         // For all other operators, evaluate right operand normally
@@ -250,7 +272,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             // Note: UG (AND) and O (OR) are handled above with short-circuit evaluation
             
             default:
-                throw new RuntimeException("Unsupported binary operator: " + e.operator.lexeme);
+                throw runtimeError(e.operator, "Unsupported binary operator: " + e.operator.lexeme);
         }
     }
 
@@ -280,7 +302,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     env.assign(var.name, result);
                     return result;
                 }
-                throw new RuntimeException("Decrement operator requires a variable.");
+                throw runtimeError(e.operator, "Decrement operator requires a variable.");
             
             case PLUS:
                 // Positive operator (unary +)
@@ -299,13 +321,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     env.assign(var.name, result);
                     return result;
                 }
-                throw new RuntimeException("Increment operator requires a variable.");
+                throw runtimeError(e.operator, "Increment operator requires a variable.");
             
             case DILI: // NOT
-                return !isTruthy(operand);
+                boolean bool = requireBoolean(operand, e.operator, "DILI operator (NOT)");
+                return !bool;
             
             default:
-                throw new RuntimeException("Unsupported unary operator: " + e.operator.lexeme);
+                throw runtimeError(e.operator, "Unsupported unary operator: " + e.operator.lexeme);
         }
     }
 
@@ -328,7 +351,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     env.assign(var.name, newValue);
                     return oldValue; // Return old value for postfix
                 }
-                throw new RuntimeException("Postfix increment operator requires a variable.");
+                throw runtimeError(e.operator, "Postfix increment operator requires a variable.");
             
             case MINUS_MINUS:
                 // Postfix decrement: return old value, then decrement
@@ -344,10 +367,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                     env.assign(var.name, newValue);
                     return oldValue; // Return old value for postfix
                 }
-                throw new RuntimeException("Postfix decrement operator requires a variable.");
+                throw runtimeError(e.operator, "Postfix decrement operator requires a variable.");
             
             default:
-                throw new RuntimeException("Unsupported postfix operator: " + e.operator.lexeme);
+                throw runtimeError(e.operator, "Unsupported postfix operator: " + e.operator.lexeme);
         }
     }
 
@@ -357,9 +380,45 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     // --- Helper methods ---
+    
+    /**
+     * Creates a runtime error with line and column information.
+     * This provides professional error messages that help users locate issues.
+     */
+    private RuntimeException runtimeError(Token token, String message) {
+        return new RuntimeException("[line " + token.line + " col " + token.col + "] " + message);
+    }
+    
+    /**
+     * Ensures a value is a number, throwing an error with location if not.
+     */
     private Number requireNumber(Object value, Token operator) {
         if (value instanceof Number n) return n;
-        throw new RuntimeException("Operand must be a number for operator '" + operator.lexeme + "'.");
+        throw runtimeError(operator, "Operand must be a number for operator '" + operator.lexeme + "'. Got: " + getTypeName(value));
+    }
+    
+    /**
+     * Ensures a value is a boolean, throwing an error with location if not.
+     */
+    private boolean requireBoolean(Object value, Token token, String context) {
+        if (value instanceof Boolean b) return b;
+        if (value instanceof String s && (s.equals("OO") || s.equals("DILI"))) {
+            return s.equals("OO");
+        }
+        throw runtimeError(token, context + " requires a boolean value (OO or DILI). Got: " + getTypeName(value));
+    }
+    
+    /**
+     * Returns the type name of a value for error messages.
+     */
+    private String getTypeName(Object value) {
+        if (value == null) return "null";
+        if (value instanceof Integer) return "NUMERO";
+        if (value instanceof Double) return "TIPIK";
+        if (value instanceof Character) return "LETRA";
+        if (value instanceof Boolean) return "TINUOD";
+        if (value instanceof String) return "text";
+        return value.getClass().getSimpleName();
     }
 
     private Object addNumbers(Object left, Object right, Token operator) {
@@ -397,7 +456,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Number r = requireNumber(right, operator);
         
         if (r.doubleValue() == 0.0) {
-            throw new RuntimeException("Division by zero.");
+            throw runtimeError(operator, "Division by zero.");
         }
         
         if (l instanceof Integer && r instanceof Integer) {
@@ -411,7 +470,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Number r = requireNumber(right, operator);
         
         if (r.doubleValue() == 0.0) {
-            throw new RuntimeException("Modulo by zero.");
+            throw runtimeError(operator, "Modulo by zero.");
         }
         
         if (l instanceof Integer && r instanceof Integer) {
