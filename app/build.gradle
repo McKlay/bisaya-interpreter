@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
 }
 
 repositories {
@@ -13,8 +14,18 @@ java {
     }
 }
 
+javafx {
+    version = '21'
+    modules = ['javafx.controls', 'javafx.fxml']
+    configuration = 'implementation'
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    
+    // JavaFX dependencies
+    implementation 'org.openjfx:javafx-controls:21'
+    implementation 'org.openjfx:javafx-fxml:21'
 }
 
 test {
@@ -32,6 +43,68 @@ run {
     standardInput = System.in
 }
 
+// Task to run the GUI IDE
+task runIDE(type: JavaExec) {
+    group = 'application'
+    description = 'Run the Bisaya++ IDE (GUI)'
+    mainClass = 'com.bisayapp.ui.BisayaIDE'
+    classpath = sourceSets.main.runtimeClasspath
+    
+    // Manually set JavaFX module arguments
+    jvmArgs = [
+        '--module-path', classpath.asPath,
+        '--add-modules', 'javafx.controls,javafx.fxml'
+    ]
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+// Create executable JAR for the IDE
+task ideJar(type: Jar) {
+    group = 'build'
+    description = 'Create executable JAR for Bisaya++ IDE'
+    archiveBaseName = 'bisaya-ide'
+    archiveVersion = '1.0'
+    
+    manifest {
+        attributes(
+            'Main-Class': 'com.bisayapp.ui.BisayaIDE',
+            'Implementation-Title': 'Bisaya++ IDE',
+            'Implementation-Version': '1.0'
+        )
+    }
+    
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    with jar
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Create executable JAR for CLI
+task cliJar(type: Jar) {
+    group = 'build'
+    description = 'Create executable JAR for Bisaya++ CLI'
+    archiveBaseName = 'bisaya-cli'
+    archiveVersion = '1.0'
+    
+    manifest {
+        attributes(
+            'Main-Class': 'com.bisayapp.Bisaya',
+            'Implementation-Title': 'Bisaya++ Interpreter',
+            'Implementation-Version': '1.0'
+        )
+    }
+    
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    
+    with jar
+    
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

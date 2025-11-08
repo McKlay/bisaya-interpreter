@@ -1,7 +1,7 @@
-SUGOD
-	MUGNA TIPIK a, b, d
-	DAWAT: a
-	DAWAT: b
-	d = a + b
-	IPAKITA: d
-KATAPUSAN
+            SUGOD
+            MUGNA NUMERO x=10
+            KUNG (x <> 5)
+            PUNDOK{
+                IPAKITA: "x is not 5"
+            }
+            KATAPUSAN
