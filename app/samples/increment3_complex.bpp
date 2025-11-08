@@ -3,14 +3,14 @@ SUGOD
     MUGNA NUMERO a=100, b=200, c=300
     MUGNA TINUOD result="DILI"
     
-    -- Complex boolean expression with logical operators
+    @@ Complex boolean expression with logical operators
     result = (a < b UG b < c)
     
     KUNG (result)
     PUNDOK{
         IPAKITA: "Numbers are in ascending order" & $
         
-        -- Nested if to find the range
+        @@ Nested if to find the range
         MUGNA NUMERO diff1, diff2
         diff1 = b - a
         diff2 = c - b

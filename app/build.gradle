@@ -26,6 +26,9 @@ dependencies {
     // JavaFX dependencies
     implementation 'org.openjfx:javafx-controls:21'
     implementation 'org.openjfx:javafx-fxml:21'
+    
+    // RichTextFX for syntax highlighting and rich text editing
+    implementation 'org.fxmisc.richtext:richtextfx:0.11.2'
 }
 
 test {

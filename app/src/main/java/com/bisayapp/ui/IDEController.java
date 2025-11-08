@@ -30,6 +30,9 @@ public class IDEController {
         this.statusBar = statusBar;
         this.fileManager = new FileManager(stage);
         
+        // Connect output panel to editor for jump-to-line functionality
+        outputPanel.setEditorPanel(editorPanel);
+        
         // Setup listeners
         setupListeners();
     }
@@ -257,7 +260,7 @@ public class IDEController {
         try {
             String text = editorPanel.getCode();
             
-            // Get position from LineNumberFactory
+            // Get position from editor
             String position = editorPanel.getLineColumnPosition();
             
             // Count total lines

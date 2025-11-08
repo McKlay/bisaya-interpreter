@@ -77,6 +77,11 @@ public class BisayaIDE extends Application {
      * Applies CSS styling to the scene
      */
     private void applyStyles(Scene scene) {
+        // Load external CSS file for syntax highlighting and output colors
+        String cssPath = getClass().getResource("/bisaya-syntax.css").toExternalForm();
+        scene.getStylesheets().add(cssPath);
+        
+        // Inline styles for general UI
         String css = """
             .text-area {
                 -fx-font-family: 'Consolas', 'Monaco', 'Courier New', monospace;

@@ -1,0 +1,73 @@
+/* Bisaya++ Syntax Highlighting Stylesheet */
+
+/* Keywords - Blue and bold */
+.keyword {
+    -fx-fill: #0000FF;
+    -fx-font-weight: bold;
+}
+
+/* Strings - Green */
+.string {
+    -fx-fill: #008000;
+}
+
+/* Numbers - Orange */
+.number {
+    -fx-fill: #FF8C00;
+}
+
+/* Comments - Gray and italic */
+.comment {
+    -fx-fill: #808080;
+    -fx-font-style: italic;
+}
+
+/* Operators - Dark gray */
+.operator {
+    -fx-fill: #666666;
+}
+
+/* Current line highlight - More visible blue background */
+.current-line {
+    -fx-background-color: #CCE5FF;
+}
+
+/* Clickable error line in output */
+.error-line {
+    -fx-fill: #CC0000;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+/* Output text color styles */
+.output-normal {
+    -fx-fill: #00ff00;
+}
+
+.output-error {
+    -fx-fill: #ff4444;
+}
+
+.output-warning {
+    -fx-fill: #ffaa00;
+}
+
+/* Line numbers styling (from RichTextFX) */
+.lineno {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 11pt;
+}
+
+/* CodeArea - Add border on left side for line number separator */
+.code-area {
+    -fx-border-color: transparent #d0d0d0 transparent transparent;
+    -fx-border-width: 0 0 0 1;
+}
+
+/* Paragraph graphic (line number area) border */
+.code-area .paragraph-graphic {
+    -fx-border-color: transparent #d0d0d0 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}

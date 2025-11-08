@@ -2,21 +2,21 @@ package com.bisayapp.ui;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
+import org.fxmisc.richtext.CodeArea;
 
 /**
  * Code Editor Panel Component
  * 
- * Provides the text editor area for writing Bisaya++ code with line numbers
+ * Provides the text editor area for writing Bisaya++ code with syntax highlighting
+ * Uses RichTextFX CodeArea for advanced text editing features
  */
 public class EditorPanel extends VBox {
     
-    private final TextArea codeEditor;
-    private final LineNumberFactory lineNumberFactory;
+    private final CodeArea codeEditor;
+    private final SyntaxHighlighter syntaxHighlighter;
     
     public EditorPanel() {
         super(5);
@@ -28,30 +28,34 @@ public class EditorPanel extends VBox {
         editorLabel.setFont(Font.font("System", 14));
         editorLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #333;");
         
-        // Create editor
-        codeEditor = new TextArea();
-        codeEditor.setFont(Font.font(IDEConfig.EDITOR_FONT, IDEConfig.EDITOR_FONT_SIZE));
+        // Create CodeArea (RichTextFX) instead of TextArea
+        codeEditor = new CodeArea();
+        codeEditor.getStyleClass().add("code-area");
         codeEditor.setStyle(String.format(
-            "-fx-background-color: %s; -fx-text-fill: %s; -fx-control-inner-background: %s;",
-            IDEConfig.EDITOR_BG_COLOR, IDEConfig.EDITOR_TEXT_COLOR, IDEConfig.EDITOR_BG_COLOR
+            "-fx-font-family: '%s'; -fx-font-size: %dpt; -fx-background-color: %s;",
+            IDEConfig.EDITOR_FONT, IDEConfig.EDITOR_FONT_SIZE, IDEConfig.EDITOR_BG_COLOR
         ));
-        codeEditor.setPromptText(IDEConfig.EDITOR_PROMPT);
-        codeEditor.setWrapText(false);
+        // Note: CodeArea doesn't support setPromptText(), placeholder handled by label
         
-        // Create line number factory
-        lineNumberFactory = new LineNumberFactory(codeEditor);
+        // Add line numbers with current line highlighting
+        codeEditor.setParagraphGraphicFactory(HighlightedLineNumberFactory.get(codeEditor));
         
-        // Create editor with line numbers
-        HBox editorWithLineNumbers = lineNumberFactory.createEditorWithLineNumbers();
-        VBox.setVgrow(editorWithLineNumbers, Priority.ALWAYS);
+        // Initialize syntax highlighter
+        syntaxHighlighter = new SyntaxHighlighter(codeEditor);
         
-        getChildren().addAll(editorLabel, editorWithLineNumbers);
+        // Apply initial highlighting if there's any text
+        if (!codeEditor.getText().isEmpty()) {
+            syntaxHighlighter.applyHighlighting();
+        }
+        
+        VBox.setVgrow(codeEditor, Priority.ALWAYS);
+        getChildren().addAll(editorLabel, codeEditor);
     }
     
     /**
-     * Gets the code editor text area
+     * Gets the code editor (CodeArea)
      */
-    public TextArea getCodeEditor() {
+    public CodeArea getCodeEditor() {
         return codeEditor;
     }
     
@@ -66,7 +70,9 @@ public class EditorPanel extends VBox {
      * Sets the code text
      */
     public void setCode(String code) {
-        codeEditor.setText(code);
+        codeEditor.clear();
+        codeEditor.replaceText(0, 0, code);
+        syntaxHighlighter.applyHighlighting();
     }
     
     /**
@@ -87,15 +93,42 @@ public class EditorPanel extends VBox {
      * Gets current line and column position
      */
     public String getLineColumnPosition() {
-        int line = lineNumberFactory.getCurrentLineNumber();
-        int col = lineNumberFactory.getCurrentColumnNumber();
+        int line = getCurrentLineNumber();
+        int col = getCurrentColumnNumber();
         return "Line " + line + ", Col " + col;
     }
     
     /**
-     * Gets the line number factory
+     * Gets the current line number (1-based)
      */
-    public LineNumberFactory getLineNumberFactory() {
-        return lineNumberFactory;
+    public int getCurrentLineNumber() {
+        return codeEditor.getCurrentParagraph() + 1;
+    }
+    
+    /**
+     * Gets the current column number (1-based)
+     */
+    public int getCurrentColumnNumber() {
+        return codeEditor.getCaretColumn() + 1;
+    }
+    
+    /**
+     * Jumps to a specific line number
+     */
+    public void jumpToLine(int lineNumber) {
+        if (lineNumber < 1 || lineNumber > codeEditor.getParagraphs().size()) {
+            return;
+        }
+        int paragraphIndex = lineNumber - 1;
+        codeEditor.moveTo(paragraphIndex, 0);
+        codeEditor.requestFollowCaret();
+        codeEditor.requestFocus();
+    }
+    
+    /**
+     * Gets the syntax highlighter
+     */
+    public SyntaxHighlighter getSyntaxHighlighter() {
+        return syntaxHighlighter;
     }
 }
