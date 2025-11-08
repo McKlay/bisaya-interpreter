@@ -3,13 +3,21 @@
 **Project**: Bisaya++ IDE  
 **Phase**: Phase 2 - Enhanced User Experience  
 **Date**: November 8, 2025  
-**Status**: ✅ **COMPLETED**
+**Status**: ✅ **COMPLETED & POLISHED**
 
 ---
 
 ## 📋 Overview
 
-Phase 2 successfully enhanced the Bisaya++ IDE with professional features including syntax highlighting foundation, line numbers, improved UI polish, comprehensive keyboard shortcuts, sample program menu, and enhanced error formatting. All planned features have been implemented and tested.
+Phase 2 successfully enhanced the Bisaya++ IDE with professional features including **semantic syntax highlighting**, line numbers, improved UI, comprehensive keyboard shortcuts, sample programs menu, and enhanced error formatting. All features implemented and polished for production use.
+
+### Key Highlights
+- ✅ **4-tier semantic syntax highlighting** with professional color scheme
+- ✅ **Line numbers** with perfect scroll synchronization
+- ✅ **Clickable error messages** to jump to code lines
+- ✅ **Sample programs menu** with 22 examples across 5 categories
+- ✅ **Enhanced error formatting** with code context
+- ✅ **Comprehensive keyboard shortcuts** for all actions
 
 ---
 
@@ -295,29 +303,33 @@ Code Context:
 
 ## 📝 Known Limitations
 
-### ~~Syntax Highlighting~~ ✅ COMPLETED
-- **Previous**: Foundation only, validates syntax in background
-- **Previous Limitation**: JavaFX TextArea doesn't support multi-color text
-- **NOW IMPLEMENTED**: Full syntax highlighting with RichTextFX CodeArea
-- **Features**: Keywords (blue/bold), Strings (green), Numbers (orange), Comments (gray/italic), Operators (dark gray)
-- **Technology**: RichTextFX 0.11.2 with custom CSS stylesheet
+### ~~Syntax Highlighting~~ ✅ COMPLETED & ENHANCED
+- **Previous**: Single color scheme (all keywords blue)
+- **NOW IMPLEMENTED**: Semantic color coding with 4 keyword categories
+- **Color Scheme**:
+  - **Program Structure** (SUGOD, KATAPUSAN): Dark blue (#000080)
+  - **Built-in Functions** (IPAKITA, DAWAT, MUGNA): Purple (#8B008B)
+  - **Data Types** (NUMERO, LETRA, TINUOD, TIPIK): Teal (#008080)
+  - **Control Flow** (KUNG, SAMTANG, ALANG, PUNDOK): Blue (#0000FF)
+  - **Strings**: Dark green (#006400) - better contrast
+  - **Numbers**: Brown (#A52A2A) - distinct from operators
+  - **Comments**: VS Code green (#6A9955) - improved readability
+  - **Operators**: Orange (#FF8C00) - now stands out from numbers
+- **Benefits**: Clear semantic distinction, better readability, professional appearance
+- **Technology**: RichTextFX 0.11.2 with enhanced CSS stylesheet
 
-### ~~Line Number Current Line Highlight~~ ✅ COMPLETED
-- **Previous**: Line numbers display correctly but no current line highlighting
-- **Previous Limitation**: Current line highlighting removed to fix scroll sync
-- **NOW IMPLEMENTED**: Current line highlighted with light blue background (#E8F4FF)
-- **Features**: Real-time highlight updates on caret movement, smooth visual feedback
+### ~~Line Number Current Line Highlight~~ ✅ DISABLED
+- **Status**: Intentionally disabled for better UX
+- **Reason**: Paragraph highlighting interfered with text selection
+- **Issue**: Dark background made it hard to see selected text portions
+- **Decision**: Prioritize text selection clarity over current line highlight
+- **Note**: Can be re-enabled in `SyntaxHighlighter.setupCurrentLineHighlight()` if needed
 
 ### ~~Error Click-to-Jump~~ ✅ COMPLETED
 - **Previous**: Enhanced error formatting with line numbers
 - **Previous Limitation**: Errors not clickable yet
 - **NOW IMPLEMENTED**: Click error lines in output to jump to code line
 - **Features**: Cursor changes to hand over error lines, regex pattern matching for line numbers, automatic scroll and focus
-
-### Themes
-- **Current**: Single color scheme (light theme)
-- **Limitation**: No dark/light theme toggle
-- **Future**: Add theme switcher with saved preferences
 
 ### Themes
 - **Current**: Single color scheme (light theme)
@@ -450,6 +462,53 @@ outputArea.setOnMouseClicked(event -> {
 **Connection**:
 - `IDEController` constructor now calls `outputPanel.setEditorPanel(editorPanel)`
 - `EditorPanel.jumpToLine()` uses CodeArea's `moveTo(paragraph, column)` and `requestFollowCaret()`
+
+---
+
+## 🎉 Phase 2 Final Polish (November 8, 2025)
+
+### 12. Semantic Syntax Highlighting Enhancement ✅
+**Files**: `bisaya-syntax.css`, `SyntaxHighlighter.java` (Enhanced)
+
+**Problem**: Previous implementation used single blue color for all keywords, making it hard to distinguish between different semantic categories. Poor contrast on strings and comments reduced readability.
+
+**Solution**: Implemented 4-tier semantic color coding with improved contrast:
+
+**Color Scheme**:
+| Category | Keywords | Color | Rationale |
+|----------|----------|-------|-----------|
+| **Program Structure** | SUGOD, KATAPUSAN | Dark Blue (#000080) | Marks program boundaries |
+| **Built-in Functions** | IPAKITA, DAWAT, MUGNA | Purple (#8B008B) | Distinct from control flow |
+| **Data Types** | NUMERO, LETRA, TINUOD, TIPIK | Teal (#008080) | Clear type identification |
+| **Control Flow** | KUNG, SAMTANG, ALANG, PUNDOK, etc. | Blue (#0000FF) | Traditional keyword color |
+| **Strings** | "text", 'c' | Dark Green (#006400) | Better contrast than light green |
+| **Numbers** | 123, 45.6 | Brown (#A52A2A) | Distinct from operators |
+| **Comments** | @@ comment | VS Code Green (#6A9955) | Professional appearance |
+| **Operators** | +, -, *, /, =, etc. | Orange (#FF8C00) | Stands out from operands |
+
+**Implementation Details**:
+- Separated keyword patterns into 4 categories: `structurePattern`, `builtinPattern`, `datatypePattern`, `keywordPattern`
+- Updated CSS with 4 new style classes: `.structure`, `.builtin`, `.datatype`, `.keyword`
+- Applied styles in priority order: comments → strings → numbers → keywords (by category) → operators
+- Updated `getStyleClass()` method to map TokenType to correct semantic category
+
+**Benefits**:
+- **Semantic Clarity**: Users can instantly identify element types
+- **Better Contrast**: Darker colors improve readability
+- **Professional Look**: Colors inspired by VS Code and IntelliJ
+- **Learning Aid**: Color coding helps beginners understand code structure
+
+**Example**:
+```bisaya
+SUGOD                          // Dark blue (structure)
+MUGNA NUMERO i, j, product     // Purple (builtin), Teal (datatype), Black (variables)
+SAMTANG (i <= 3)               // Blue (control flow), Brown (number)
+PUNDOK{                        // Blue (control flow)
+    product = i * j            // Orange (operators), Brown (numbers)
+    IPAKITA: product & " "     // Purple (builtin), Dark Green (string)
+}
+KATAPUSAN                      // Dark blue (structure)
+```
 
 ---
 

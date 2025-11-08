@@ -22,7 +22,10 @@ public class SyntaxHighlighter {
     private final CodeArea codeArea;
     
     // CSS style classes for different token types
-    private static final String KEYWORD_CLASS = "keyword";
+    private static final String KEYWORD_CLASS = "keyword";       // Control flow (KUNG, SAMTANG, ALANG, etc.)
+    private static final String BUILTIN_CLASS = "builtin";       // Built-in functions (IPAKITA, DAWAT, MUGNA)
+    private static final String DATATYPE_CLASS = "datatype";     // Data types (NUMERO, LETRA, TINUOD, TIPIK)
+    private static final String STRUCTURE_CLASS = "structure";   // Program structure (SUGOD, KATAPUSAN)
     private static final String STRING_CLASS = "string";
     private static final String NUMBER_CLASS = "number";
     private static final String COMMENT_CLASS = "comment";
@@ -54,10 +57,13 @@ public class SyntaxHighlighter {
     private void applyInlineStyles() {
         codeArea.setStyle(codeArea.getStyle() + 
             ".keyword { -fx-fill: #0000FF; -fx-font-weight: bold; }" +
-            ".string { -fx-fill: #008000; }" +
-            ".number { -fx-fill: #FF8C00; }" +
-            ".comment { -fx-fill: #808080; -fx-font-style: italic; }" +
-            ".operator { -fx-fill: #666666; }" +
+            ".builtin { -fx-fill: #8B008B; -fx-font-weight: bold; }" +
+            ".datatype { -fx-fill: #008080; -fx-font-weight: bold; }" +
+            ".structure { -fx-fill: #000080; -fx-font-weight: bold; }" +
+            ".string { -fx-fill: #006400; }" +
+            ".number { -fx-fill: #A52A2A; }" +
+            ".comment { -fx-fill: #6A9955; -fx-font-style: italic; }" +
+            ".operator { -fx-fill: #FF8C00; }" +
             ".current-line { -fx-background-color: #E8F4FF; }"
         );
     }
@@ -151,8 +157,11 @@ public class SyntaxHighlighter {
         String[] styles = new String[codeLength];
         Arrays.fill(styles, ""); // Default: no style
         
-        // Define keyword pattern
-        String keywordPattern = "\\b(SUGOD|KATAPUSAN|MUGNA|NUMERO|LETRA|TINUOD|TIPIK|IPAKITA|DAWAT|KUNG|WALA|DILI|PUNDOK|ALANG|SA|SAMTANG|UG|O)\\b";
+        // Define patterns for different keyword categories
+        String structurePattern = "\\b(SUGOD|KATAPUSAN)\\b";
+        String builtinPattern = "\\b(IPAKITA|DAWAT|MUGNA)\\b";
+        String datatypePattern = "\\b(NUMERO|LETRA|TINUOD|TIPIK)\\b";
+        String keywordPattern = "\\b(KUNG|WALA|DILI|PUNDOK|ALANG|SA|SAMTANG|UG|O)\\b";
         
         // 1. Mark comments first (@@) - highest priority
         java.util.regex.Pattern commentPattern = java.util.regex.Pattern.compile("@@.*");
@@ -187,12 +196,50 @@ public class SyntaxHighlighter {
             }
         }
         
-        // 4. Mark keywords
+        // 4. Mark structure keywords (SUGOD, KATAPUSAN)
+        java.util.regex.Pattern structurePatternCompiled = java.util.regex.Pattern.compile(structurePattern);
+        java.util.regex.Matcher structureMatcher = structurePatternCompiled.matcher(code);
+        while (structureMatcher.find()) {
+            for (int i = structureMatcher.start(); i < structureMatcher.end() && i < codeLength; i++) {
+                if (!COMMENT_CLASS.equals(styles[i]) && 
+                    !STRING_CLASS.equals(styles[i]) && 
+                    !NUMBER_CLASS.equals(styles[i])) {
+                    styles[i] = STRUCTURE_CLASS;
+                }
+            }
+        }
+        
+        // 5. Mark built-in functions (IPAKITA, DAWAT, MUGNA)
+        java.util.regex.Pattern builtinPatternCompiled = java.util.regex.Pattern.compile(builtinPattern);
+        java.util.regex.Matcher builtinMatcher = builtinPatternCompiled.matcher(code);
+        while (builtinMatcher.find()) {
+            for (int i = builtinMatcher.start(); i < builtinMatcher.end() && i < codeLength; i++) {
+                if (!COMMENT_CLASS.equals(styles[i]) && 
+                    !STRING_CLASS.equals(styles[i]) && 
+                    !NUMBER_CLASS.equals(styles[i])) {
+                    styles[i] = BUILTIN_CLASS;
+                }
+            }
+        }
+        
+        // 6. Mark data type keywords (NUMERO, LETRA, TINUOD, TIPIK)
+        java.util.regex.Pattern datatypePatternCompiled = java.util.regex.Pattern.compile(datatypePattern);
+        java.util.regex.Matcher datatypeMatcher = datatypePatternCompiled.matcher(code);
+        while (datatypeMatcher.find()) {
+            for (int i = datatypeMatcher.start(); i < datatypeMatcher.end() && i < codeLength; i++) {
+                if (!COMMENT_CLASS.equals(styles[i]) && 
+                    !STRING_CLASS.equals(styles[i]) && 
+                    !NUMBER_CLASS.equals(styles[i])) {
+                    styles[i] = DATATYPE_CLASS;
+                }
+            }
+        }
+        
+        // 7. Mark control flow keywords (KUNG, SAMTANG, ALANG, etc.)
         java.util.regex.Pattern keyPattern = java.util.regex.Pattern.compile(keywordPattern);
         java.util.regex.Matcher keyMatcher = keyPattern.matcher(code);
         while (keyMatcher.find()) {
             for (int i = keyMatcher.start(); i < keyMatcher.end() && i < codeLength; i++) {
-                // Don't override comments, strings, or numbers
                 if (!COMMENT_CLASS.equals(styles[i]) && 
                     !STRING_CLASS.equals(styles[i]) && 
                     !NUMBER_CLASS.equals(styles[i])) {
@@ -201,7 +248,7 @@ public class SyntaxHighlighter {
             }
         }
         
-        // 5. Mark operators
+        // 8. Mark operators
         java.util.regex.Pattern operatorPattern = java.util.regex.Pattern.compile("[+\\-*/%=<>!&|(){}\\[\\]:,;]");
         java.util.regex.Matcher operatorMatcher = operatorPattern.matcher(code);
         while (operatorMatcher.find()) {
@@ -210,7 +257,10 @@ public class SyntaxHighlighter {
                 if (!COMMENT_CLASS.equals(styles[i]) && 
                     !STRING_CLASS.equals(styles[i]) && 
                     !NUMBER_CLASS.equals(styles[i]) && 
-                    !KEYWORD_CLASS.equals(styles[i])) {
+                    !KEYWORD_CLASS.equals(styles[i]) &&
+                    !BUILTIN_CLASS.equals(styles[i]) &&
+                    !DATATYPE_CLASS.equals(styles[i]) &&
+                    !STRUCTURE_CLASS.equals(styles[i])) {
                     styles[i] = OPERATOR_CLASS;
                 }
             }
@@ -329,15 +379,25 @@ public class SyntaxHighlighter {
      */
     private String getStyleClass(TokenType type) {
         switch (type) {
+            // Program structure
             case SUGOD:
             case KATAPUSAN:
+                return STRUCTURE_CLASS;
+            
+            // Built-in functions
+            case IPAKITA:
+            case DAWAT:
             case MUGNA:
+                return BUILTIN_CLASS;
+            
+            // Data types
             case NUMERO:
             case LETRA:
             case TINUOD:
             case TIPIK:
-            case IPAKITA:
-            case DAWAT:
+                return DATATYPE_CLASS;
+            
+            // Control flow keywords
             case KUNG:
             case WALA:
             case DILI:

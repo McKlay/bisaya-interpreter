@@ -17,7 +17,7 @@ public class IDEConfig {
     public static final String EDITOR_FONT = "Consolas";
     public static final int EDITOR_FONT_SIZE = 10;
     public static final String OUTPUT_FONT = "Consolas";
-    public static final int OUTPUT_FONT_SIZE = 9;
+    public static final int OUTPUT_FONT_SIZE = 10;
     
     // Color Scheme
     public static final String EDITOR_BG_COLOR = "#ffffff";
