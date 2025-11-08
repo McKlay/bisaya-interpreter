@@ -8,7 +8,7 @@ Step-by-step guide to build a GUI terminal for Bisaya++ interpreter, starting wi
 
 ---
 
-## Phase 1: MVP - Basic GUI Terminal (2 weeks)
+## Phase 1: MVP - Basic GUI Terminal
 
 ### Week 1: Setup & Core UI
 
@@ -55,7 +55,7 @@ Step-by-step guide to build a GUI terminal for Bisaya++ interpreter, starting wi
 
 ---
 
-## Phase 2: Enhanced UX (2 weeks, optional)
+## Phase 2: Enhanced UX
 
 ### Week 3: Visual Improvements
 
