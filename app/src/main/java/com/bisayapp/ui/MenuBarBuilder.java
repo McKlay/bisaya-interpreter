@@ -28,10 +28,11 @@ public class MenuBarBuilder {
         MenuBar menuBar = new MenuBar();
         
         Menu fileMenu = createFileMenu();
+        Menu editMenu = createEditMenu();
         Menu examplesMenu = createExamplesMenu();
         Menu runMenu = createRunMenu();
         
-        menuBar.getMenus().addAll(fileMenu, examplesMenu, runMenu);
+        menuBar.getMenus().addAll(fileMenu, editMenu, examplesMenu, runMenu);
         
         return menuBar;
     }
@@ -68,6 +69,23 @@ public class MenuBarBuilder {
     }
     
     /**
+     * Creates the Edit menu
+     */
+    private Menu createEditMenu() {
+        Menu editMenu = new Menu("Edit");
+        
+        MenuItem formatItem = new MenuItem("Format Code");
+        formatItem.setAccelerator(new KeyCodeCombination(KeyCode.F, 
+                                   KeyCombination.CONTROL_DOWN, 
+                                   KeyCombination.SHIFT_DOWN));
+        formatItem.setOnAction(e -> controller.formatCode());
+        
+        editMenu.getItems().add(formatItem);
+        
+        return editMenu;
+    }
+    
+    /**
      * Creates the Examples menu with sample programs
      */
     private Menu createExamplesMenu() {
@@ -79,6 +97,10 @@ public class MenuBarBuilder {
         addExampleItem(basicExamples, "hello_bisaya.bpp", "Hello Bisaya");
         addExampleItem(basicExamples, "simple.bpp", "Simple Program");
         addExampleItem(basicExamples, "comments_demo.bpp", "Comments Demo");
+        
+        Menu inputExamples = new Menu("Input (DAWAT)");
+        addExampleItem(inputExamples, "simple-dawat.bpp", "Simple Input");
+        addExampleItem(inputExamples, "test-dawat-gui.bpp", "Multiple Inputs");
         
         Menu increment3Examples = new Menu("Conditionals (Inc 3)");
         addExampleItem(increment3Examples, "increment3_simple_if.bpp", "Simple IF");
@@ -101,7 +123,7 @@ public class MenuBarBuilder {
         addExampleItem(increment5Examples, "increment5_nested_while.bpp", "Nested While");
         addExampleItem(increment5Examples, "increment5_while_conditional.bpp", "While with IF");
         
-        examplesMenu.getItems().addAll(basicExamples, increment3Examples, 
+        examplesMenu.getItems().addAll(basicExamples, inputExamples, increment3Examples, 
                                        increment4Examples, increment5Examples);
         
         return examplesMenu;

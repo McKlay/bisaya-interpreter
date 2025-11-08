@@ -45,10 +45,13 @@ public class HighlightedLineNumberFactory {
             lineLabel.setMinWidth(50);
             lineLabel.setMaxWidth(50);
             
+            // Always set light gray background for all line numbers
+            lineLabel.setStyle("-fx-background-color: #f0f0f0;");
+            
             // Check if this is the current line
             int currentParagraph = codeArea.getCurrentParagraph();
             if (lineNumber == currentParagraph) {
-                // Highlight current line number
+                // Highlight current line number (blue text, bold, darker background)
                 lineLabel.setTextFill(CURRENT_LINE_NUMBER_COLOR);
                 lineLabel.setFont(Font.font("Consolas", FontPosture.REGULAR, 11));
                 lineLabel.setStyle("-fx-font-weight: bold; -fx-background-color: #E0E0E0;");
@@ -56,9 +59,11 @@ public class HighlightedLineNumberFactory {
                     new BackgroundFill(CURRENT_LINE_BG_COLOR, null, null)
                 ));
             } else {
-                // Normal line number
+                // Normal line number (gray text, light gray background)
                 lineLabel.setTextFill(NORMAL_LINE_NUMBER_COLOR);
-                lineLabel.setStyle("-fx-background-color: #f0f0f0;");
+                lineLabel.setBackground(new Background(
+                    new BackgroundFill(Color.web("#f0f0f0"), null, null)
+                ));
             }
             
             // Update when caret moves
@@ -72,7 +77,9 @@ public class HighlightedLineNumberFactory {
                 } else {
                     lineLabel.setTextFill(NORMAL_LINE_NUMBER_COLOR);
                     lineLabel.setStyle("-fx-background-color: #f0f0f0;");
-                    lineLabel.setBackground(Background.EMPTY);
+                    lineLabel.setBackground(new Background(
+                        new BackgroundFill(Color.web("#f0f0f0"), null, null)
+                    ));
                 }
             });
             

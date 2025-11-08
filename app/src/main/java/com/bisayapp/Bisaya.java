@@ -94,4 +94,31 @@ public class Bisaya {
 
         new Interpreter(out, in).interpret(program);
     }
+    
+    /**
+     * Run Bisaya++ source code with custom IOHandler (used by GUI with DAWAT support)
+     * @param source The Bisaya++ source code
+     * @param ioHandler The I/O handler for input/output operations
+     * @throws Exception if there are errors during execution
+     */
+    public static void runSource(String source, IOHandler ioHandler) throws Exception {
+        // Reset error state
+        ErrorReporter.reset();
+        
+        Lexer lexer = new Lexer(source);
+        List<Token> tokens = lexer.scanTokens();
+
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Lexical errors found");
+        }
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> program = parser.parseProgram();
+        
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Syntax errors found");
+        }
+
+        new Interpreter(ioHandler).interpret(program);
+    }
 }

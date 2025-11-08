@@ -3,22 +3,30 @@ package com.bisayapp;
 import java.io.PrintStream;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Scanner;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private final Environment env = new Environment();
-    private final PrintStream out;
-    private final InputStream in;
-    private Scanner scanner;
+    private final IOHandler ioHandler;
 
-    public Interpreter(PrintStream out) {
-        this(out, System.in);
+    /**
+     * Creates interpreter with custom IOHandler
+     */
+    public Interpreter(IOHandler ioHandler) {
+        this.ioHandler = ioHandler;
     }
 
+    /**
+     * Creates interpreter with console I/O (backward compatibility)
+     */
+    public Interpreter(PrintStream out) {
+        this(new ConsoleIOHandler(out, System.err, System.in));
+    }
+
+    /**
+     * Creates interpreter with custom streams (backward compatibility)
+     */
     public Interpreter(PrintStream out, InputStream in) {
-        this.out = out;
-        this.in = in;
-        this.scanner = new Scanner(in);
+        this(new ConsoleIOHandler(out, System.err, in));
     }
 
     public void interpret(List<Stmt> program) {
@@ -34,20 +42,24 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         StringBuilder sb = new StringBuilder();
         for (Expr e : s.parts) sb.append(stringify(eval(e)));
         // No automatic newline - user must explicitly use $ for newlines
-        out.print(sb.toString());
+        ioHandler.writeOutput(sb.toString());
         return null;
     }
 
     @Override
     public Void visitInput(Stmt.Input s) {
+        // Build prompt message
+        String prompt = "Enter values for: " + String.join(", ", s.varNames);
+        
         String line;
         try {
-            if (!scanner.hasNextLine()) {
+            if (!ioHandler.hasInput()) {
                 throw runtimeError(s.dawatToken, "DAWAT: No input available (empty input stream)");
             }
-            line = scanner.nextLine().trim();
-        } catch (java.util.NoSuchElementException e) {
-            throw runtimeError(s.dawatToken, "DAWAT: No input available (empty input stream)");
+            line = ioHandler.readInput(prompt);
+        } catch (RuntimeException e) {
+            // Handle cancellation or input errors
+            throw runtimeError(s.dawatToken, "DAWAT: " + e.getMessage());
         }
         
         String[] values = line.split(",");

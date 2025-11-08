@@ -29,11 +29,12 @@ public class ToolBarBuilder {
         
         Button runButton = createRunButton();
         Button clearButton = createClearButton();
+        Button formatButton = createFormatButton();
         
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         
-        toolBar.getItems().addAll(runButton, clearButton, spacer);
+        toolBar.getItems().addAll(runButton, clearButton, formatButton, spacer);
         
         return toolBar;
     }
@@ -58,5 +59,16 @@ public class ToolBarBuilder {
         clearButton.setOnAction(e -> controller.clearOutput());
         clearButton.setTooltip(new Tooltip("Clear the output area (Ctrl+L)"));
         return clearButton;
+    }
+    
+    /**
+     * Creates the Format Code button
+     */
+    private Button createFormatButton() {
+        Button formatButton = new Button("⚌ Format");
+        formatButton.setStyle("-fx-padding: 8 20 8 20; -fx-cursor: hand;");
+        formatButton.setOnAction(e -> controller.formatCode());
+        formatButton.setTooltip(new Tooltip("Format code (Ctrl+Shift+F)"));
+        return formatButton;
     }
 }

@@ -39,6 +39,9 @@ public class BisayaIDE extends Application {
         // Create controller
         IDEController controller = new IDEController(stage, editorPanel, outputPanel, statusBar);
         
+        // Setup context menu on editor
+        editorPanel.setupContextMenu(controller);
+        
         // Create menu bar and toolbar
         MenuBarBuilder menuBarBuilder = new MenuBarBuilder(stage, controller);
         ToolBarBuilder toolBarBuilder = new ToolBarBuilder(controller);

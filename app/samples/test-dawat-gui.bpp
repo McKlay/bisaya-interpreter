@@ -1,0 +1,23 @@
+@@ Test program for DAWAT command in GUI
+SUGOD
+    MUGNA NUMERO x, y
+    MUGNA LETRA c
+    MUGNA TINUOD flag
+    
+    IPAKITA: "Enter x, y: "
+    DAWAT: x, y
+    
+    IPAKITA: "You entered: x = " & x & ", y = " & y & $
+    
+    IPAKITA: "Enter a character: "
+    DAWAT: c
+    
+    IPAKITA: "You entered: c = " & c & $
+    
+    IPAKITA: "Enter a boolean (OO/DILI): "
+    DAWAT: flag
+    
+    IPAKITA: "You entered: flag = " & flag & $
+    
+    IPAKITA: "Sum: " & (x + y) & $
+KATAPUSAN

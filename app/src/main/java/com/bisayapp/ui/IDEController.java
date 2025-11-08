@@ -5,10 +5,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 
 /**
  * IDE Controller
@@ -176,7 +174,7 @@ public class IDEController {
     }
     
     /**
-     * Runs the Bisaya++ program
+     * Runs the Bisaya++ program with threading and DAWAT support
      */
     public void runProgram() {
         String code = editorPanel.getCode();
@@ -194,55 +192,49 @@ public class IDEController {
         // Clear previous output
         outputPanel.clear();
         
-        // Capture System.out
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        PrintStream originalOut = System.out;
-        PrintStream originalErr = System.err;
+        // Create GUI I/O handler for interactive input support
+        GUIIOHandler ioHandler = new GUIIOHandler(outputPanel);
         
-        try {
-            // Redirect output
-            PrintStream captureStream = new PrintStream(outputStream);
-            System.setOut(captureStream);
-            System.setErr(captureStream);
-            
-            // Run interpreter directly with source code
-            Bisaya.runSource(code, captureStream, System.in);
-            
-            // Display output
-            String output = outputStream.toString();
-            if (output.isEmpty()) {
-                outputPanel.setText(ErrorFormatter.formatSuccess("(Program completed with no output)"));
-                outputPanel.setNormalStyle();
-            } else {
-                outputPanel.setText(ErrorFormatter.formatSuccess(output));
-                outputPanel.setNormalStyle();
+        // Run in background thread to keep UI responsive
+        Thread executionThread = new Thread(() -> {
+            try {
+                // Run interpreter with GUI I/O handler
+                Bisaya.runSource(code, ioHandler);
+                
+                // Update UI on JavaFX thread
+                javafx.application.Platform.runLater(() -> {
+                    String output = ioHandler.getOutput();
+                    if (output.isEmpty()) {
+                        outputPanel.appendText("\n" + ErrorFormatter.formatSuccess("(Program completed with no output)"));
+                    }
+                    outputPanel.setNormalStyle();
+                    statusBar.setStatus("✓ Execution completed successfully");
+                });
+                
+            } catch (Exception e) {
+                // Update UI on JavaFX thread
+                javafx.application.Platform.runLater(() -> {
+                    outputPanel.setErrorStyle();
+                    
+                    // Get any output that was generated before the error
+                    String output = ioHandler.getOutput();
+                    
+                    String formattedError;
+                    if (!output.isEmpty()) {
+                        formattedError = ErrorFormatter.formatError(e.getMessage(), code);
+                    } else {
+                        formattedError = ErrorFormatter.formatError(e.getMessage(), code);
+                    }
+                    
+                    outputPanel.appendText("\n" + formattedError);
+                    statusBar.setStatus("✗ Execution failed");
+                });
             }
-            
-            statusBar.setStatus("✓ Execution completed successfully");
-            
-        } catch (Exception e) {
-            // Display error with formatting
-            outputPanel.setErrorStyle();
-            
-            // Get captured error output
-            String errorOutput = outputStream.toString();
-            String formattedError;
-            
-            if (!errorOutput.isEmpty()) {
-                formattedError = ErrorFormatter.formatError(errorOutput, code);
-            } else {
-                formattedError = ErrorFormatter.formatError(e.getMessage(), code);
-            }
-            
-            outputPanel.setText(formattedError);
-            
-            statusBar.setStatus("✗ Execution failed");
-            
-        } finally {
-            // Restore original streams
-            System.setOut(originalOut);
-            System.setErr(originalErr);
-        }
+        });
+        
+        executionThread.setDaemon(true);
+        executionThread.setName("Bisaya-Execution-Thread");
+        executionThread.start();
     }
     
     /**
@@ -251,6 +243,88 @@ public class IDEController {
     public void clearOutput() {
         outputPanel.clear();
         statusBar.setStatus("Output cleared");
+    }
+    
+    /**
+     * Formats the current code with consistent indentation and spacing
+     * Supports both full document and selection formatting
+     */
+    public void formatCode() {
+        String originalCode = editorPanel.getCode();
+        
+        if (originalCode.trim().isEmpty()) {
+            statusBar.setStatus("No code to format");
+            return;
+        }
+        
+        try {
+            boolean hasSelection = editorPanel.hasSelection();
+            String formattedCode;
+            long startTime = System.currentTimeMillis();
+            
+            if (hasSelection) {
+                // Format only selected text
+                int selStart = editorPanel.getSelectionStart();
+                int selEnd = editorPanel.getSelectionEnd();
+                
+                // Save selection bounds for restoration
+                int originalSelStart = selStart;
+                int originalSelEnd = selEnd;
+                
+                // Format the selection
+                formattedCode = PrettyPrinter.formatSelection(originalCode, selStart, selEnd);
+                
+                // Check if code actually changed
+                if (formattedCode.equals(originalCode)) {
+                    statusBar.setStatus("Selection already formatted");
+                    return;
+                }
+                
+                // Replace entire code
+                editorPanel.setCode(formattedCode);
+                
+                // Try to restore selection (may shift due to formatting)
+                int lengthDiff = formattedCode.length() - originalCode.length();
+                editorPanel.selectRange(originalSelStart, originalSelEnd + lengthDiff);
+                
+                long duration = System.currentTimeMillis() - startTime;
+                statusBar.setStatus(String.format("✓ Selection formatted (%dms)", duration));
+                
+            } else {
+                // Format entire document
+                // Save caret position (as percentage of total length)
+                int caretPos = editorPanel.getCodeEditor().getCaretPosition();
+                double caretPercentage = originalCode.length() > 0 
+                    ? (double) caretPos / originalCode.length() 
+                    : 0.0;
+                
+                // Format the code
+                formattedCode = PrettyPrinter.format(originalCode);
+                
+                // Check if code actually changed
+                if (formattedCode.equals(originalCode)) {
+                    statusBar.setStatus("Code already formatted");
+                    return;
+                }
+                
+                // Replace code in editor
+                editorPanel.setCode(formattedCode);
+                
+                // Restore caret position (approximate)
+                int newCaretPos = (int) (formattedCode.length() * caretPercentage);
+                newCaretPos = Math.max(0, Math.min(newCaretPos, formattedCode.length()));
+                editorPanel.getCodeEditor().moveTo(newCaretPos);
+                
+                long duration = System.currentTimeMillis() - startTime;
+                statusBar.setStatus(String.format("✓ Code formatted successfully (%dms)", duration));
+            }
+            
+        } catch (Exception e) {
+            // On error, keep original code
+            statusBar.setStatus("Format failed: " + e.getMessage());
+            System.err.println("Format error: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     /**

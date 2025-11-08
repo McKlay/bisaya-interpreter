@@ -1,7 +1,12 @@
 package com.bisayapp.ui;
 
 import javafx.geometry.Insets;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
@@ -130,5 +135,77 @@ public class EditorPanel extends VBox {
      */
     public SyntaxHighlighter getSyntaxHighlighter() {
         return syntaxHighlighter;
+    }
+    
+    /**
+     * Sets up the context menu with format options
+     * @param controller The IDE controller to handle actions
+     */
+    public void setupContextMenu(IDEController controller) {
+        ContextMenu contextMenu = new ContextMenu();
+        
+        // Format menu item - label changes based on selection
+        MenuItem formatItem = new MenuItem("Format Document");
+        formatItem.setAccelerator(new KeyCodeCombination(KeyCode.F, 
+                                   KeyCombination.CONTROL_DOWN, 
+                                   KeyCombination.SHIFT_DOWN));
+        formatItem.setOnAction(e -> controller.formatCode());
+        
+        // Update label dynamically based on selection
+        contextMenu.setOnShowing(e -> {
+            if (hasSelection()) {
+                formatItem.setText("Format Selection");
+            } else {
+                formatItem.setText("Format Document");
+            }
+        });
+        
+        contextMenu.getItems().add(formatItem);
+        codeEditor.setContextMenu(contextMenu);
+    }
+    
+    /**
+     * Gets the selected text (empty string if no selection)
+     */
+    public String getSelectedText() {
+        return codeEditor.getSelectedText();
+    }
+    
+    /**
+     * Checks if there is any text selected
+     */
+    public boolean hasSelection() {
+        return codeEditor.getSelection().getLength() > 0;
+    }
+    
+    /**
+     * Gets the start position of current selection
+     */
+    public int getSelectionStart() {
+        return codeEditor.getSelection().getStart();
+    }
+    
+    /**
+     * Gets the end position of current selection
+     */
+    public int getSelectionEnd() {
+        return codeEditor.getSelection().getEnd();
+    }
+    
+    /**
+     * Replaces the selected text with new text
+     */
+    public void replaceSelection(String replacement) {
+        int start = getSelectionStart();
+        int end = getSelectionEnd();
+        codeEditor.replaceText(start, end, replacement);
+        syntaxHighlighter.applyHighlighting();
+    }
+    
+    /**
+     * Selects text from start to end position
+     */
+    public void selectRange(int start, int end) {
+        codeEditor.selectRange(start, end);
     }
 }
