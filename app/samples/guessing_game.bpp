@@ -1,0 +1,208 @@
+@@ ============================================================
+@@ BISAYA++ NUMBER GUESSING GAME
+@@ Hulaan ang Numero (1-100)
+@@ 
+@@ Maayong pag-abot! Kini usa ka interactive game diin kinahanglan
+@@ nimo nga hulaan ang sekreto nga numero. Ang programa mohatag
+@@ ug mga timailhan kon ang imong guess taas o ubos kaayo.
+@@ ============================================================
+
+SUGOD
+
+@@ ============================================================
+@@ WELCOME MESSAGE
+@@ ============================================================
+IPAKITA: "============================================================" & $
+IPAKITA: "   MAAYONG PAG-ABOT SA BISAYA++ GUESSING GAME!" & $
+IPAKITA: "   Hulaan ang Numero (1-100)" & $
+IPAKITA: "============================================================" & $
+IPAKITA: $
+
+@@ ============================================================
+@@ INITIALIZE GAME
+@@ ============================================================
+MUGNA NUMERO seed, secret, guess, attempts, playagain
+MUGNA TINUOD found
+
+@@ Get random seed from user
+IPAKITA: "Para sa random nga numero, palihug ibutang ang bisan" & $
+IPAKITA: "unsang numero (alang sa seed): "
+DAWAT: seed
+
+@@ Generate secret number (1-100) using seed
+@@ Formula: ((seed * 17 + 23) % 100) + 1
+secret = ((seed * 17 + 23) % 100) + 1
+
+IPAKITA: $
+IPAKITA: "Ang sekreto nga numero kay gipili na!" & $
+IPAKITA: "Kini usa ka numero gikan sa 1 hangtod 100." & $
+IPAKITA: "Magsugod ta!" & $
+IPAKITA: "============================================================" & $
+IPAKITA: $
+
+@@ ============================================================
+@@ MAIN GAME LOOP
+@@ ============================================================
+attempts = 0
+found = "DILI"
+
+SAMTANG (found == "DILI")
+PUNDOK{
+    attempts = attempts + 1
+    
+    IPAKITA: "------------------------------------------------------------" & $
+    IPAKITA: "Attempt #" & attempts & $
+    IPAKITA: "Unsa imong guess (1-100)? "
+    DAWAT: guess
+    
+    @@ Validate input range
+    KUNG (guess < 1 O guess > 100)
+    PUNDOK{
+        IPAKITA: "Mali! Palihug 1-100 lang!" & $
+        attempts = attempts - 1
+    }
+    KUNG DILI (guess == secret)
+    PUNDOK{
+        @@ WINNER!
+        IPAKITA: $
+        IPAKITA: "============================================================" & $
+        IPAKITA: "          SAKTO! ANG NUMERO KAY " & secret & "!" & $
+        IPAKITA: "============================================================" & $
+        IPAKITA: $
+        IPAKITA: "Nahuman nimo sa " & attempts & " ka sulay!" & $
+        
+        @@ Give performance feedback
+        KUNG (attempts <= 3)
+        PUNDOK{
+            IPAKITA: "Wow! Sobrang kaayo!" & $
+        }
+        KUNG DILI (attempts <= 5)
+        PUNDOK{
+            IPAKITA: "Maayo kaayo!" & $
+        }
+        KUNG DILI (attempts <= 7)
+        PUNDOK{
+            IPAKITA: "Maayo ra!" & $
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: "Okay ra, sulayi nasad!" & $
+        }
+        
+        found = "OO"
+    }
+    KUNG DILI (guess < secret)
+    PUNDOK{
+        @@ Too low
+        IPAKITA: "Ubos kaayo! Sulayi ang taas." & $
+    }
+    KUNG WALA
+    PUNDOK{
+        @@ Too high
+        IPAKITA: "Taas kaayo! Sulayi ang ubos." & $
+    }
+}
+
+@@ ============================================================
+@@ PLAY AGAIN?
+@@ ============================================================
+IPAKITA: $
+IPAKITA: "------------------------------------------------------------" & $
+IPAKITA: "Gusto ba ka moduwa og usab?" & $
+IPAKITA: "(1=Oo, 0=Dili): "
+DAWAT: playagain
+
+KUNG (playagain == 1)
+PUNDOK{
+    IPAKITA: $
+    IPAKITA: "============================================================" & $
+    IPAKITA: "Bag-ong Game!" & $
+    IPAKITA: "============================================================" & $
+    IPAKITA: $
+    
+    @@ Get new seed
+    IPAKITA: "Palihug ibutang ang bag-ong seed: "
+    DAWAT: seed
+    
+    @@ Generate new secret number
+    secret = ((seed * 17 + 23) % 100) + 1
+    
+    IPAKITA: $
+    IPAKITA: "Bag-ong sekreto nga numero kay gipili na!" & $
+    IPAKITA: "Magsugod ta!" & $
+    IPAKITA: "============================================================" & $
+    IPAKITA: $
+    
+    @@ Reset game variables
+    attempts = 0
+    found = "DILI"
+    
+    @@ Second game loop
+    SAMTANG (found == "DILI")
+    PUNDOK{
+        attempts = attempts + 1
+        
+        IPAKITA: "------------------------------------------------------------" & $
+        IPAKITA: "Attempt #" & attempts & $
+        IPAKITA: "Unsa imong guess (1-100)? "
+        DAWAT: guess
+        
+        @@ Validate input range
+        KUNG (guess < 1 O guess > 100)
+        PUNDOK{
+            IPAKITA: "Mali! Palihug 1-100 lang!" & $
+            attempts = attempts - 1
+        }
+        KUNG DILI (guess == secret)
+        PUNDOK{
+            @@ WINNER!
+            IPAKITA: $
+            IPAKITA: "============================================================" & $
+            IPAKITA: "          SAKTO! ANG NUMERO KAY " & secret & "!" & $
+            IPAKITA: "============================================================" & $
+            IPAKITA: $
+            IPAKITA: "Nahuman nimo sa " & attempts & " ka sulay!" & $
+            
+            @@ Give performance feedback
+            KUNG (attempts <= 3)
+            PUNDOK{
+                IPAKITA: "Wow! Sobrang kaayo!" & $
+            }
+            KUNG DILI (attempts <= 5)
+            PUNDOK{
+                IPAKITA: "Maayo kaayo!" & $
+            }
+            KUNG DILI (attempts <= 7)
+            PUNDOK{
+                IPAKITA: "Maayo ra!" & $
+            }
+            KUNG WALA
+            PUNDOK{
+                IPAKITA: "Okay ra, sulayi nasad!" & $
+            }
+            
+            found = "OO"
+        }
+        KUNG DILI (guess < secret)
+        PUNDOK{
+            @@ Too low
+            IPAKITA: "Ubos kaayo! Sulayi ang taas." & $
+        }
+        KUNG WALA
+        PUNDOK{
+            @@ Too high
+            IPAKITA: "Taas kaayo! Sulayi ang ubos." & $
+        }
+    }
+}
+
+@@ ============================================================
+@@ GOODBYE MESSAGE
+@@ ============================================================
+IPAKITA: $
+IPAKITA: "============================================================" & $
+IPAKITA: "Salamat sa pagdula sa BISAYA++ Guessing Game!" & $
+IPAKITA: "Paalam ug maayong adlaw!" & $
+IPAKITA: "============================================================" & $
+
+KATAPUSAN

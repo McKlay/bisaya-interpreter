@@ -353,4 +353,137 @@ public class IDEController {
             statusBar.setStatus("Ready");
         }
     }
+    
+    /**
+     * Shows the Language Reference dialog
+     */
+    public void showLanguageReference() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Bisaya++ Language Reference");
+        alert.setHeaderText("Bisaya++ Programming Language");
+        
+        String content = """
+            BASIC STRUCTURE:
+            • SUGOD ... KATAPUSAN - Program boundaries
+            • @@ - Comments (start of line or inline)
+            • $ - Newline character
+            • & - String concatenation
+            • [] - Escape characters
+            
+            DATA TYPES:
+            • NUMERO - Integer (4 bytes)
+            • LETRA - Single character
+            • TINUOD - Boolean ("OO"=true, "DILI"=false)
+            • TIPIK - Floating point number
+            
+            DECLARATION:
+            • MUGNA <type> <var>[=<value>][,<var>[=<value>]]*
+            
+            I/O OPERATIONS:
+            • IPAKITA: <expression> - Output
+            • DAWAT: <var>[,<var>]* - Input
+            
+            OPERATORS:
+            • Arithmetic: +, -, *, /, %
+            • Comparison: >, <, >=, <=, ==, <>
+            • Logical: UG (AND), O (OR), DILI (NOT)
+            • Unary: ++, --, +, -
+            
+            CONTROL STRUCTURES:
+            • KUNG (<condition>) PUNDOK{ } - If
+            • KUNG WALA PUNDOK{ } - Else
+            • KUNG DILI (<condition>) PUNDOK{ } - Else if
+            • ALANG SA (<init>, <cond>, <update>) PUNDOK{ } - For loop
+            • SAMTANG (<condition>) PUNDOK{ } - While loop
+            
+            For detailed documentation, visit:
+            https://github.com/McKlay/bisaya-interpreter
+            """;
+        
+        alert.setContentText(content);
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(600);
+        alert.showAndWait();
+    }
+    
+    /**
+     * Shows the Keyboard Shortcuts dialog
+     */
+    public void showKeyboardShortcuts() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Keyboard Shortcuts");
+        alert.setHeaderText("Bisaya++ IDE Shortcuts");
+        
+        String content = """
+            FILE OPERATIONS:
+            • Ctrl+N - New File
+            • Ctrl+O - Open File
+            • Ctrl+S - Save File
+            • Ctrl+Shift+S - Save As
+            
+            EDITING:
+            • Ctrl+Shift+F - Format Code
+            • Ctrl+Z - Undo
+            • Ctrl+Y - Redo
+            • Ctrl+A - Select All
+            • Ctrl+C - Copy
+            • Ctrl+X - Cut
+            • Ctrl+V - Paste
+            
+            RUNNING:
+            • Ctrl+R - Run Program
+            • F5 - Reload File
+            • Ctrl+L - Clear Output
+            
+            HELP:
+            • F1 - Language Reference
+            • Ctrl+Shift+K - Keyboard Shortcuts
+            """;
+        
+        alert.setContentText(content);
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(500);
+        alert.showAndWait();
+    }
+    
+    /**
+     * Shows the About dialog with version and creator information
+     */
+    public void showAbout() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("About Bisaya++");
+        alert.setHeaderText("Bisaya++ Programming Language");
+        
+        String content = """
+            Version: 1.0.0
+            
+            A Cebuano-based educational programming language designed
+            to teach programming fundamentals using native keywords.
+            
+            CREATOR:
+            Clay Mark Sarte
+            
+            LINKS:
+            • GitHub: https://github.com/McKlay/bisaya-interpreter
+            • LinkedIn: https://www.linkedin.com/in/clay-mark-sarte-283855147/
+            
+            FEATURES:
+            ✓ Native Cebuano syntax
+            ✓ Strong typing system
+            ✓ Control structures (IF, FOR, WHILE)
+            ✓ Interactive IDE with syntax highlighting
+            ✓ Real-time error detection
+            ✓ Code formatting
+            
+            © 2025 Clay Mark Sarte. All rights reserved.
+            
+            Licensed for educational purposes.
+            """;
+        
+        alert.setContentText(content);
+        alert.setResizable(true);
+        alert.getDialogPane().setPrefWidth(550);
+        alert.showAndWait();
+    }
 }
+

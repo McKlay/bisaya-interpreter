@@ -31,8 +31,9 @@ public class MenuBarBuilder {
         Menu editMenu = createEditMenu();
         Menu examplesMenu = createExamplesMenu();
         Menu runMenu = createRunMenu();
+        Menu helpMenu = createHelpMenu();
         
-        menuBar.getMenus().addAll(fileMenu, editMenu, examplesMenu, runMenu);
+        menuBar.getMenus().addAll(fileMenu, editMenu, examplesMenu, runMenu, helpMenu);
         
         return menuBar;
     }
@@ -123,8 +124,13 @@ public class MenuBarBuilder {
         addExampleItem(increment5Examples, "increment5_nested_while.bpp", "Nested While");
         addExampleItem(increment5Examples, "increment5_while_conditional.bpp", "While with IF");
         
+        Menu demoPrograms = new Menu("Demo Programs");
+        addExampleItem(demoPrograms, "guessing_game.bpp", "Number Guessing Game");
+        addExampleItem(demoPrograms, "pattern_generator_demo.bpp", "Pattern Generator");
+        
         examplesMenu.getItems().addAll(basicExamples, inputExamples, increment3Examples, 
-                                       increment4Examples, increment5Examples);
+                                       increment4Examples, increment5Examples, 
+                                       new SeparatorMenuItem(), demoPrograms);
         
         return examplesMenu;
     }
@@ -159,5 +165,30 @@ public class MenuBarBuilder {
         runMenu.getItems().addAll(runItem, reloadItem, new SeparatorMenuItem(), clearItem);
         
         return runMenu;
+    }
+    
+    /**
+     * Creates the Help menu
+     */
+    private Menu createHelpMenu() {
+        Menu helpMenu = new Menu("Help");
+        
+        MenuItem languageRefItem = new MenuItem("Language Reference");
+        languageRefItem.setAccelerator(new KeyCodeCombination(KeyCode.F1));
+        languageRefItem.setOnAction(e -> controller.showLanguageReference());
+        
+        MenuItem keyboardShortcutsItem = new MenuItem("Keyboard Shortcuts");
+        keyboardShortcutsItem.setAccelerator(new KeyCodeCombination(KeyCode.K, 
+                                             KeyCombination.CONTROL_DOWN, 
+                                             KeyCombination.SHIFT_DOWN));
+        keyboardShortcutsItem.setOnAction(e -> controller.showKeyboardShortcuts());
+        
+        MenuItem aboutItem = new MenuItem("About Bisaya++");
+        aboutItem.setOnAction(e -> controller.showAbout());
+        
+        helpMenu.getItems().addAll(languageRefItem, keyboardShortcutsItem, 
+                                    new SeparatorMenuItem(), aboutItem);
+        
+        return helpMenu;
     }
 }
