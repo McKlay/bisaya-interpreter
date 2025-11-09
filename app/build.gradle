@@ -46,6 +46,13 @@ run {
     standardInput = System.in
 }
 
+// Copy samples to resources so they're included in the JAR
+processResources {
+    from('samples') {
+        into 'samples'
+    }
+}
+
 // Task to run the GUI IDE
 task runIDE(type: JavaExec) {
     group = 'application'
@@ -110,4 +117,82 @@ task cliJar(type: Jar) {
     with jar
     
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// ============================================================================
+// Manual jpackage task for creating Windows MSI installer with WiX
+// ============================================================================
+
+task prepareJPackageInput {
+    group = 'distribution'
+    description = 'Prepare input directory for jpackage using fat JAR'
+    dependsOn ideJar
+    
+    doLast {
+        // Clean and create directory
+        delete "${buildDir}/jpackage-input"
+        mkdir "${buildDir}/jpackage-input"
+        
+        // Copy the fat JAR (includes all dependencies)
+        copy {
+            from("${buildDir}/libs") {
+                include 'bisaya-ide-1.0.jar'
+            }
+            into "${buildDir}/jpackage-input"
+        }
+        
+        println "✓ Copied fat JAR with all dependencies"
+    }
+}
+
+task createMSI(type: Exec) {
+    group = 'distribution'
+    description = 'Create Windows MSI installer using jpackage with JavaFX jmods'
+    dependsOn prepareJPackageInput
+    
+    workingDir projectDir
+    
+    // Ensure WiX is in PATH
+    environment 'PATH', System.getenv('PATH') + ";C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+    
+    // Path to JavaFX jmods
+    def javafxModsPath = 'C:\\javafx-jmods-21.0.9'
+    
+    commandLine 'jpackage',
+        '--type', 'msi',
+        '--input', "${buildDir}/jpackage-input",
+        '--name', 'BisayaIDE',
+        '--main-jar', 'bisaya-ide-1.0.jar',
+        '--main-class', 'com.bisayapp.ui.BisayaIDE',
+        '--app-version', '1.0.0',
+        '--vendor', 'Bisaya++ Project',
+        '--description', 'Bisaya++ Programming Language IDE',
+        '--win-dir-chooser',
+        '--win-menu',
+        '--win-shortcut',
+        '--dest', "${buildDir}/distribution",
+        '--module-path', javafxModsPath,
+        '--add-modules', 'javafx.controls,javafx.fxml'
+    
+    doFirst {
+        delete "${buildDir}/distribution"
+        mkdir "${buildDir}/distribution"
+        
+        // Verify JavaFX jmods exist
+        if (!file(javafxModsPath).exists()) {
+            throw new GradleException("JavaFX jmods not found at: ${javafxModsPath}")
+        }
+        
+        def jmodFiles = file(javafxModsPath).listFiles({ it.name.endsWith('.jmod') } as FileFilter)
+        println "Creating MSI installer with JavaFX jmods..."
+        println "JavaFX jmods path: ${javafxModsPath}"
+        println "Found ${jmodFiles?.length ?: 0} jmod files"
+        println "Output will be in: ${buildDir}/distribution"
+    }
+    
+    doLast {
+        println "✅ MSI installer created successfully!"
+        println "✅ JavaFX modules included in bundled JRE"
+        println "Location: ${buildDir}/distribution/BisayaIDE-1.0.0.msi"
+    }
 }

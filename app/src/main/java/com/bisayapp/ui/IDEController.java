@@ -110,24 +110,39 @@ public class IDEController {
      */
     public void loadExample(String filename) {
         try {
-            // Construct path to samples folder
-            File samplesDir = new File("app/samples");
-            if (!samplesDir.exists()) {
-                samplesDir = new File("samples");
-            }
+            // First try to load from classpath (JAR resources)
+            String resourcePath = "/samples/" + filename;
+            java.io.InputStream inputStream = getClass().getResourceAsStream(resourcePath);
             
-            File exampleFile = new File(samplesDir, filename);
-            
-            if (exampleFile.exists()) {
-                String content = fileManager.loadFile(exampleFile);
+            if (inputStream != null) {
+                // Load from JAR resources
+                String content = new String(inputStream.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+                inputStream.close();
                 editorPanel.setCode(content);
                 fileManager.setCurrentFile(null); // Don't set as current file
                 stage.setTitle(IDEConfig.WINDOW_TITLE + " - " + filename + " (Example)");
                 statusBar.setStatus("Loaded example: " + filename);
                 updateStatus();
             } else {
-                fileManager.showError("Example not found", "Could not find: " + filename);
-                statusBar.setStatus("Example not found");
+                // Fallback: try to load from filesystem (for development)
+                File samplesDir = new File("app/samples");
+                if (!samplesDir.exists()) {
+                    samplesDir = new File("samples");
+                }
+                
+                File exampleFile = new File(samplesDir, filename);
+                
+                if (exampleFile.exists()) {
+                    String content = fileManager.loadFile(exampleFile);
+                    editorPanel.setCode(content);
+                    fileManager.setCurrentFile(null);
+                    stage.setTitle(IDEConfig.WINDOW_TITLE + " - " + filename + " (Example)");
+                    statusBar.setStatus("Loaded example: " + filename);
+                    updateStatus();
+                } else {
+                    fileManager.showError("Example not found", "Could not find: " + filename);
+                    statusBar.setStatus("Example not found");
+                }
             }
         } catch (IOException e) {
             fileManager.showError("Error loading example", e.getMessage());
