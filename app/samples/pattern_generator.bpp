@@ -1,0 +1,206 @@
+@@ ═══════════════════════════════════════════════════════════
+@@ BISAYA++ PATTERN GENERATOR
+@@ Mga Porma ug Disenyo sa ASCII Art
+@@ 
+@@ Kini nga programa mopakita ug lain-laing mga pattern:
+@@ 1. Triangle Pyramid - Triyanggulo
+@@ 2. Diamond Shape - Diamante
+@@ 3. Number Pyramid - Numero nga Piramide
+@@ 4. Multiplication Table - Tabla sa Pag-multiply
+@@ ═══════════════════════════════════════════════════════════
+
+SUGOD
+
+@@ ─────────────────────────────────────────────────────────
+@@ PATTERN 1: TRIANGLE PYRAMID (Triyanggulo)
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "══════════════════════════════════════════════════════════" & $
+IPAKITA: "   BISAYA++ PATTERN GENERATOR" & $
+IPAKITA: "   Mga Porma ug Disenyo sa ASCII Art" & $
+IPAKITA: "══════════════════════════════════════════════════════════" & $
+IPAKITA: $
+
+IPAKITA: "PATTERN 1: TRIANGLE PYRAMID (Triyanggulo)" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+MUGNA NUMERO i, j, rows=7, spaces
+
+ALANG SA (i=1, i<=rows, i++)
+PUNDOK{
+    @@ Print spaces para sa centering
+    spaces = rows - i
+    ALANG SA (j=1, j<=spaces, j++)
+    PUNDOK{
+        IPAKITA: " "
+    }
+    
+    @@ Print stars
+    ALANG SA (j=1, j<=(2*i-1), j++)
+    PUNDOK{
+        IPAKITA: "*"
+    }
+    
+    IPAKITA: $
+}
+
+IPAKITA: $
+
+@@ ─────────────────────────────────────────────────────────
+@@ PATTERN 2: DIAMOND SHAPE (Diamante)
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "PATTERN 2: DIAMOND SHAPE (Diamante)" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+MUGNA NUMERO size=4, stars
+
+@@ Upper half (including middle)
+ALANG SA (i=1, i<=size, i++)
+PUNDOK{
+    @@ Print spaces
+    spaces = size - i
+    ALANG SA (j=1, j<=spaces, j++)
+    PUNDOK{
+        IPAKITA: " "
+    }
+    
+    @@ Print stars
+    stars = 2 * i - 1
+    ALANG SA (j=1, j<=stars, j++)
+    PUNDOK{
+        IPAKITA: "*"
+    }
+    
+    IPAKITA: $
+}
+
+@@ Lower half
+ALANG SA (i=size-1, i>=1, i--)
+PUNDOK{
+    @@ Print spaces
+    spaces = size - i
+    ALANG SA (j=1, j<=spaces, j++)
+    PUNDOK{
+        IPAKITA: " "
+    }
+    
+    @@ Print stars
+    stars = 2 * i - 1
+    ALANG SA (j=1, j<=stars, j++)
+    PUNDOK{
+        IPAKITA: "*"
+    }
+    
+    IPAKITA: $
+}
+
+IPAKITA: $
+
+@@ ─────────────────────────────────────────────────────────
+@@ PATTERN 3: NUMBER PYRAMID (Numero nga Piramide)
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "PATTERN 3: NUMBER PYRAMID (Numero nga Piramide)" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+MUGNA NUMERO numrows=5, num
+
+ALANG SA (i=1, i<=numrows, i++)
+PUNDOK{
+    @@ Print spaces para sa centering
+    spaces = numrows - i
+    ALANG SA (j=1, j<=spaces, j++)
+    PUNDOK{
+        IPAKITA: " "
+    }
+    
+    @@ Print ascending numbers
+    ALANG SA (j=1, j<=i, j++)
+    PUNDOK{
+        IPAKITA: j
+    }
+    
+    @@ Print descending numbers
+    ALANG SA (j=i-1, j>=1, j--)
+    PUNDOK{
+        IPAKITA: j
+    }
+    
+    IPAKITA: $
+}
+
+IPAKITA: $
+
+@@ ─────────────────────────────────────────────────────────
+@@ PATTERN 4: MULTIPLICATION TABLE (Tabla sa Pag-multiply)
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "PATTERN 4: MULTIPLICATION TABLE (Tabla sa Pag-multiply)" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+MUGNA NUMERO tablesize=5, product
+
+ALANG SA (i=1, i<=tablesize, i++)
+PUNDOK{
+    ALANG SA (j=1, j<=tablesize, j++)
+    PUNDOK{
+        product = i * j
+        
+        @@ Format with spacing (single digit: 2 spaces, double digit: 1 space)
+        KUNG (product < 10)
+        PUNDOK{
+            IPAKITA: "  " & product
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: " " & product
+        }
+    }
+    IPAKITA: $
+}
+
+IPAKITA: $
+
+@@ ─────────────────────────────────────────────────────────
+@@ BONUS: RIGHT-ALIGNED TRIANGLE
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "BONUS: RIGHT-ALIGNED TRIANGLE" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+ALANG SA (i=1, i<=7, i++)
+PUNDOK{
+    ALANG SA (j=1, j<=i, j++)
+    PUNDOK{
+        IPAKITA: "*"
+    }
+    IPAKITA: $
+}
+
+IPAKITA: $
+
+@@ ─────────────────────────────────────────────────────────
+@@ BONUS: INVERTED TRIANGLE
+@@ ─────────────────────────────────────────────────────────
+IPAKITA: "BONUS: INVERTED TRIANGLE" & $
+IPAKITA: "──────────────────────────────────────────────────────────" & $
+
+ALANG SA (i=7, i>=1, i--)
+PUNDOK{
+    @@ Spaces
+    ALANG SA (j=1, j<=7-i, j++)
+    PUNDOK{
+        IPAKITA: " "
+    }
+    
+    @@ Stars
+    ALANG SA (j=1, j<=(2*i-1), j++)
+    PUNDOK{
+        IPAKITA: "*"
+    }
+    
+    IPAKITA: $
+}
+
+IPAKITA: $
+IPAKITA: "══════════════════════════════════════════════════════════" & $
+IPAKITA: "Salamat sa paggamit sa BISAYA++ Pattern Generator!" & $
+IPAKITA: "══════════════════════════════════════════════════════════" & $
+
+KATAPUSAN
