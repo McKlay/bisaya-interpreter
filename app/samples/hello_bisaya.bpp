@@ -1,7 +1,39 @@
-            SUGOD
-            MUGNA NUMERO x=10
-            KUNG (x <> 5)
-            PUNDOK{
-                IPAKITA: "x is not 5"
-            }
-            KATAPUSAN
+SUGOD
+    MUGNA NUMERO a
+    MUGNA LETRA e = 'E'
+    MUGNA LETRA o = 'O'
+    MUGNA LETRA p = 'P'
+    MUGNA LETRA n = 'N'
+    MUGNA LETRA z = 'Z'
+    MUGNA TINUOD flag = "OO"
+
+    DAWAT: a
+
+    KUNG (a > 0)
+    PUNDOK{
+        KUNG (a % 2 == 0)
+        PUNDOK{
+            IPAKITA: p & e
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: p & o
+        }
+    }
+    KUNG DILI (a < 0)
+    PUNDOK{
+	IPAKITA: a%2 & $
+        KUNG (a % 2 == 0)
+        PUNDOK{
+            IPAKITA: n & e
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: n & o
+        }
+    }
+    KUNG WALA
+    PUNDOK{
+        IPAKITA: z
+    }
+KATAPUSAN

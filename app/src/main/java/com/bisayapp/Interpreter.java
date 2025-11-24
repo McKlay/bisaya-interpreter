@@ -518,7 +518,18 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (left instanceof Number && right instanceof Number) {
             Number l = (Number) left;
             Number r = (Number) right;
-            return Float.compare(l.floatValue(), r.floatValue()) == 0;
+            float leftVal = l.floatValue();
+            float rightVal = r.floatValue();
+            
+            // Handle special case: -0.0 should equal 0.0 in Bisaya++
+            // This is important for modulo operations with negative numbers
+            // In Java, Float.compare(-0.0f, 0.0f) returns -1, but for our language,
+            // we want -0.0 == 0.0 to be true
+            if (leftVal == 0.0f && rightVal == 0.0f) {
+                return true;
+            }
+            
+            return Float.compare(leftVal, rightVal) == 0;
         }
         
         return left.equals(right);

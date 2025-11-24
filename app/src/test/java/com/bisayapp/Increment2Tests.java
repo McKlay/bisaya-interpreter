@@ -154,6 +154,41 @@ public class Increment2Tests {
             "Modulo by zero should throw RuntimeException");
     }
 
+    @Test
+    @DisplayName("Modulo with negative numbers")
+    void testModuloNegativeNumbers() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO a, b, c
+            a = -8 % 2
+            b = -7 % 2
+            c = -6 % 3
+            IPAKITA: a & " " & b & " " & c
+            KATAPUSAN
+            """;
+        assertEquals("0 -1 0", runProgram(src));
+    }
+
+    @Test
+    @DisplayName("Negative modulo comparison (regression test for negative zero)")
+    void testNegativeModuloComparison() {
+        String src = """
+            SUGOD
+            MUGNA NUMERO a
+            a = -8
+            KUNG (a % 2 == 0)
+            PUNDOK{
+                IPAKITA: "EVEN"
+            }
+            KUNG WALA
+            PUNDOK{
+                IPAKITA: "ODD"
+            }
+            KATAPUSAN
+            """;
+        assertEquals("EVEN", runProgram(src));
+    }
+
     // ====================================================================
     // UNARY OPERATORS TESTS
     // ====================================================================

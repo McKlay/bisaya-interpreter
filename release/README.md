@@ -2,32 +2,32 @@
 
 ## Installation
 
-### Option 1: Run from Source (Recommended)
+### Option 1: Windows MSI Installer (Easiest)
+**Download:** `BisayaIDE-1.0.0.msi` from releases (~40 MB)
+
+1. Download and run the MSI file
+2. Follow installation wizard
+3. Launch from Start Menu or Desktop shortcut
+
+**No Java installation required** - JRE is bundled!
+
+### Option 2: Run from Source
 **Requirements:** JDK 21+ from https://adoptium.net/
 
 ```bash
-# Clone repository
 git clone https://github.com/McKlay/bisaya-interpreter.git
 cd bisaya-interpreter
-
-# Run IDE
 .\gradlew runIDE
 ```
 
-### Option 2: CLI Only (Command-line)
+### Option 3: CLI Only
 **Download:** `bisaya-cli-1.0.0-fat.jar` from releases
 
 **Requirements:** Java 21+ from https://adoptium.net/
 
 ```bash
-# Run a program
 java -jar bisaya-cli-1.0.0-fat.jar program.bpp
-
-# Interactive mode
-java -jar bisaya-cli-1.0.0-fat.jar
 ```
-
-**Note:** IDE cannot be distributed as standalone package due to JavaFX limitations. Run from source using Gradle.
 
 ---
 

@@ -32,34 +32,45 @@ Developer guide for building and distributing Bisaya++ IDE.
 
 ## Distribution Options
 
-### 1. Run from Source (RECOMMENDED for IDE)
-**Best for:** All IDE users
+### 1. Windows MSI Installer (✅ NOW AVAILABLE!)
+**What:** Self-contained Windows installer with bundled Java 21 JRE + JavaFX  
+**Size:** ~40 MB  
+**Requires:** Nothing - JRE included  
+**Best for:** End users, easiest installation
+
+```bash
+.\gradlew createMSI
+```
+
+Output: `app/build/distribution/BisayaIDE-1.0.0.msi`
+
+**Features:**
+- ✅ No Java installation required
+- ✅ Professional installer with Start Menu shortcuts
+- ✅ Double-click to install and run
+- ✅ Full IDE with syntax highlighting
+
+### 2. Run from Source (RECOMMENDED for IDE developers)
+**Best for:** Developers, teachers, source-code distribution
 
 Users clone the repository and run:
 ```bash
 .\gradlew runIDE
 ```
 
-**Why:** JavaFX applications cannot be easily packaged as standalone executables without complex native compilation. Running from source ensures all JavaFX dependencies are correctly resolved.
+**Why:** Most reliable for development and teaching.
 
-### 2. CLI Fat JAR (For Command-line Use Only)
+### 3. CLI Fat JAR
 **What:** Executable JAR for CLI interpreter  
 **Size:** ~10 MB  
 **Requires:** Java 21+  
-**Best for:** Automation, scripting, command-line users
+**Best for:** Command-line, automation, scripting
 
 ```bash
 .\gradlew cliJar
 ```
 
 Output: `app/build/libs/bisaya-cli-1.0.0-fat.jar`
-
-Usage:
-```bash
-java -jar bisaya-cli-1.0.0-fat.jar program.bpp
-```
-
-**Note:** IDE Fat JAR does not work due to JavaFX native library requirements.
 
 ---
 
@@ -69,9 +80,9 @@ java -jar bisaya-cli-1.0.0-fat.jar program.bpp
 # Run IDE from source (development)
 .\gradlew runIDE
 
-# Build portable runtime (for distribution)
-.\gradlew jpackage
-# Then ZIP: app\build\jpackage\BisayaIDE
+# Build Windows MSI installer
+.\gradlew createMSI
+# Output: app\build\distribution\BisayaIDE-1.0.0.msi
 
 # Build CLI JAR
 .\gradlew cliJar

@@ -2,82 +2,70 @@
 
 ## Overview
 
-This guide explains all available distribution options for the Bisaya++ IDE and how to build/deploy them for different use cases.
+This guide explains all available distribution options for the Bisaya++ IDE. The Windows MSI installer is now fully working and recommended for end users.
 
 ---
 
 ## Quick Start Commands
 
 ```bash
-# Show all distribution options
-.\gradlew distributionInfo
+# Build Windows MSI installer (✅ RECOMMENDED for end users)
+.\gradlew createMSI
+# Output: app/build/distribution/BisayaIDE-1.0.0.msi (~40 MB)
 
-# Build portable package (recommended)
+# Build portable package (cross-platform)
 .\gradlew createPortablePackage
+# Output: app/build/distributions/bisaya-ide-1.0.0-portable.zip
 
-# Build all distributions (except native installer)
-.\gradlew buildAllDistributions
-
-# Build native installer (Windows/Linux/Mac)
-.\gradlew jpackage
+# Build CLI JAR only
+.\gradlew cliJar
 ```
 
 ---
 
 ## Distribution Options
 
-### Option 1: Fat JAR (Simple Distribution)
+### Option 1: Windows MSI Installer (✅ RECOMMENDED for Windows Users)
 
-**Best for:** Developers, quick testing, users comfortable with Java
+**Best for:** End users, classroom distribution, widest audience
 
-#### Build Commands
+#### Build Command
 ```bash
-# Build IDE JAR
-.\gradlew ideJar
-
-# Build CLI JAR
-.\gradlew cliJar
-
-# Build both
-.\gradlew ideJar cliJar
+.\gradlew createMSI
 ```
 
 #### Output Location
 ```
-app/build/libs/
-├── bisaya-ide-1.0.0-fat.jar  (~15-20 MB)
-└── bisaya-cli-1.0.0-fat.jar  (~15-20 MB)
+app/build/distribution/BisayaIDE-1.0.0.msi (~40 MB)
 ```
 
-#### Usage
-```bash
-# Run IDE
-java -jar app/build/libs/bisaya-ide-1.0.0-fat.jar
+#### Installation
+1. Double-click MSI file
+2. Follow wizard
+3. Launch from Start Menu
 
-# Run CLI
-java -jar app/build/libs/bisaya-cli-1.0.0-fat.jar program.bpp
-```
-
-#### Requirements
-- Java 21+ must be installed on user's system
-- User must know how to use command line
+#### Features
+✅ **No Java required** - JRE 21 bundled  
+✅ **Professional installer** - Native Windows experience  
+✅ **Start Menu shortcuts** - Easy access  
+✅ **Full IDE** - Syntax highlighting, examples, samples  
+✅ **Self-contained** - ~40 MB all-in-one
 
 #### Pros
-✅ Smallest download size  
-✅ Cross-platform (same file for Windows/Linux/Mac)  
-✅ Easy to build  
-✅ No installer needed
+✅ Easiest for non-technical users  
+✅ No Java installation needed  
+✅ Professional appearance  
+✅ One-click launch  
 
 #### Cons
-❌ Users must install Java separately  
-❌ Requires command-line knowledge  
-❌ Less professional appearance
+❌ Windows only (need separate builds for Linux/Mac)  
+❌ Larger download size
 
 ---
 
-### Option 2: Portable Package (Recommended)
+### Option 2: Portable Package (Cross-Platform)
 
-**Best for:** Students, classroom distribution, GitHub releases
+**Best for:** GitHub releases, cross-platform distribution, classroom
 
 #### Build Command
 ```bash
@@ -207,72 +195,74 @@ sudo dpkg -i bisaya-ide_1.0.0-1_amd64.deb
 
 ## Distribution Strategy Recommendations
 
+### For Windows Users (Most Recommended)
+**Use:** Windows MSI Installer
+
+**Advantages:**
+- Zero setup - no Java installation needed
+- Professional one-click install
+- Most user-friendly
+
+---
+
 ### For Classroom/Academic Use
-**Use:** Portable Package
+**Use:** Portable Package (cross-platform) or MSI (Windows labs)
 
 **Workflow:**
-1. Build: `.\gradlew createPortablePackage`
-2. Upload to course website or Google Drive
-3. Students download and extract
-4. Provide link to Java 21 download (https://adoptium.net/)
-5. Students use launcher scripts
-
-**Benefits:**
-- One package for all OS types
-- Easy to update (just upload new ZIP)
-- Students learn about Java environment
-- Smaller download for limited bandwidth
+1. Windows: Download MSI, double-click to install
+2. Other OS: Download portable ZIP, extract, run launcher
+3. Provide link to Java 21 (https://adoptium.net/) for non-Windows
 
 ---
 
 ### For GitHub Releases
-**Use:** Portable Package + Fat JARs
+**Use:** MSI (Windows) + Portable ZIP (cross-platform) + CLI JAR (advanced)
 
 **Workflow:**
-1. Build all: `.\gradlew buildAllDistributions`
-2. Create GitHub Release with tags
+1. Build: `.\gradlew createMSI && .\gradlew createPortablePackage && .\gradlew cliJar`
+2. Create GitHub Release
 3. Upload assets:
-   - `bisaya-ide-1.0.0-portable.zip` (main download)
-   - `bisaya-ide-1.0.0-fat.jar` (advanced users)
-   - `bisaya-cli-1.0.0-fat.jar` (CLI users)
+   - `BisayaIDE-1.0.0.msi` - Windows users (recommended, no Java needed)
+   - `bisaya-ide-1.0.0-portable.zip` - Cross-platform
+   - `bisaya-cli-1.0.0-fat.jar` - Advanced/CLI users
 
 **Release Notes Template:**
 ```markdown
-# Bisaya++ v1.0.0
+# Bisaya++ v1.0.0 🎉
 
 ## Downloads
 
-### For Most Users (Recommended)
-- [bisaya-ide-1.0.0-portable.zip](link) - Complete package with launcher scripts
+### Windows (Recommended)
+- [BisayaIDE-1.0.0.msi](link) - Professional installer, no Java required
 
-### Advanced Users
-- [bisaya-ide-1.0.0-fat.jar](link) - IDE only (requires Java 21+)
+### Cross-Platform
+- [bisaya-ide-1.0.0-portable.zip](link) - Works on Windows/Linux/Mac
+
+### Advanced
 - [bisaya-cli-1.0.0-fat.jar](link) - CLI only (requires Java 21+)
 
 ## Installation
 
-**Portable Package:**
-1. Download and extract ZIP
-2. Install Java 21+ from https://adoptium.net/
-3. Run launcher script (bisaya-ide.bat or bisaya-ide.sh)
+**Windows:**
+Download and run the MSI - automatic installation!
 
-**JAR Files:**
-```bash
-java -jar bisaya-ide-1.0.0-fat.jar
-```
+**Other OS / Portable:**
+Extract ZIP and run launcher script
 
 ## What's New
-- [List changes here]
+- ✅ Official MSI installer for Windows
+- ✅ No Java installation required
+- [List other features]
 ```
 
 ---
 
 ### For Production/End Users
-**Use:** Native Installer
+**Use:** Windows MSI (bundled JRE) or Portable Package
 
 **Workflow:**
-1. Build installer on each OS:
-   - Windows: `.\gradlew jpackage` (produces .msi)
+1. Windows: Distribute MSI (~40 MB, all-in-one)
+2. Other OS: Distribute portable ZIP (~20 MB)
    - Linux: `./gradlew jpackage` (produces .deb)
    - Mac: `./gradlew jpackage` (produces .dmg)
 2. Upload to website or distribute via:
