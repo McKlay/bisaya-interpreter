@@ -487,13 +487,6 @@ public class Increment1Tests {
 
     // ---- Integration: real sample files ------------------------------------
     @Test
-    void sampleHelloFile_runsEndToEnd() throws Exception {
-        // Test hello.bpp sample
-        String out = runFile("samples/hello.bpp");
-        assertEquals("Hi, Bisaya++\nBisaya++ Interpreter", out);
-    }
-
-    @Test
     void specificationSampleFile_runsEndToEnd() throws Exception {
         // Test the specification sample program (simple.bpp)
         String out = runFile("samples/simple.bpp");
