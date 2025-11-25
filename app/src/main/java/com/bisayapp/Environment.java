@@ -7,9 +7,6 @@ public class Environment {
     private final Map<String, Object> values = new HashMap<>();
     private final Map<String, TokenType> types = new HashMap<>();
 
-    public void define(String name, Object value) { values.put(name, value); }
-
-    // declare with type
     public void declare(String name, TokenType type, Object value) {
         // Check if variable is already declared
         if (types.containsKey(name)) {
@@ -37,9 +34,6 @@ public class Environment {
         return values.get(name);
     }
 
-    public boolean isDefined(String name) { return values.containsKey(name); }
-
-    // simple coercion for Increment 1
     private Object coerce(TokenType t, Object v) {
         if (v == null) return null;
         switch (t) {
@@ -75,7 +69,6 @@ public class Environment {
             }
             case LETRA -> {
                 if (v instanceof Character c) return c;
-                // TODO: Fixed - LETRA must be exactly 1 character
                 if (v instanceof String s) {
                     if (s.length() == 0) {
                         throw new RuntimeException("Type error: LETRA cannot be empty - must be exactly one character");

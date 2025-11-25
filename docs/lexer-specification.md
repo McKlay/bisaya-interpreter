@@ -357,15 +357,15 @@ IPAKITA: x $ y        → [IPAKITA][:][x][$][y]
 
 ### 10. Comments
 
-**Input Pattern**: `--` followed by rest of line  
+**Input Pattern**: `@@` followed by rest of line  
 **Processing**: Consume until newline, generate no tokens  
 **Use Cases**:
 
 ```bpp
--- This is a comment
+@@ This is a comment
 MUGNA NUMERO x        → [MUGNA][NUMERO][x]
 
-MUGNA NUMERO y -- inline comment
+MUGNA NUMERO y @@ inline comment
                       → [MUGNA][NUMERO][y]
 ```
 
@@ -394,7 +394,7 @@ IPAKITA: "Hello" & [n] & "World"  // Outputs: Hello\nWorld
 ### Special Operators
 - `$` produces NEWLINE token for explicit line breaks
 - `&` serves as concatenation operator
-- `--` starts line comments (consumed until `\n`)
+- `@@` starts line comments (consumed until `\n`)
 
 ```bpp
 IPAKITA: "Line1" & $ & "Line2"  // Two-line output
@@ -492,22 +492,24 @@ The lexer reports errors for:
 
 ### Sample Test Cases
 ```bpp
--- Test file: samples/lexer-test.bpp
+@@ Test file: samples/lexer-test.bpp
 SUGOD
 MUGNA NUMERO test_var = 42
 IPAKITA: "Result: " & test_var & [n]
--- Comment with [special] characters
+@@ Comment with [special] characters
 KATAPUSAN
 ```
 
 Expected tokens: `[SUGOD][MUGNA][NUMERO][test_var][=][42][NEWLINE][IPAKITA][:]["Result: "][&][test_var][&][STRING:"\n"][NEWLINE][KATAPUSAN][EOF]`
 
-## Future Extensions
+### Future Extensions
 
-### Planned Increments
-- **Increment 2**: Input handling (`DAWAT`) and unary operators (`++`, `--`)
-- **Increment 3**: Conditional tokens (`KUNG`, `KUNG WALA`, `KUNG DILI`)  
-- **Increment 4**: Loop constructs (`ALANG SA`, `WHILE`)
+### Completed Increments
+- **Increment 1**: ✅ Program structure, output, comments, operators
+- **Increment 2**: ✅ Input handling (`DAWAT`) and unary operators (`++`, `--`)
+- **Increment 3**: ✅ Conditional tokens (`KUNG`, `KUNG WALA`, `KUNG DILI`)  
+- **Increment 4**: ✅ For loop constructs (`ALANG SA`)
+- **Increment 5**: ✅ While loop construct (`SAMTANG`)
 
 ### Potential Enhancements
 - Unicode identifier support

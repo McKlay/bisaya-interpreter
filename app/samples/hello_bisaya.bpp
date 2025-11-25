@@ -6,9 +6,9 @@ SUGOD
     MUGNA LETRA n = 'N'
     MUGNA LETRA z = 'Z'
     MUGNA TINUOD flag = "OO"
-
+ 
     DAWAT: a
-
+ 
     KUNG (a > 0)
     PUNDOK{
         KUNG (a % 2 == 0)
@@ -22,7 +22,6 @@ SUGOD
     }
     KUNG DILI (a < 0)
     PUNDOK{
-	IPAKITA: a%2 & $
         KUNG (a % 2 == 0)
         PUNDOK{
             IPAKITA: n & e

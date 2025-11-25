@@ -19,11 +19,26 @@ flowchart TD
   EXEC --> VISIT_STMT{Statement Type}
   
   VISIT_STMT -->|Print| V_PRINT[visitPrint]
-  VISIT_STMT -->|VarDecl| V_VARDECL[visitVarDecl] 
+  VISIT_STMT -->|Input| V_INPUT[visitInput]
+  VISIT_STMT -->|VarDecl| V_VARDECL[visitVarDecl]
+  VISIT_STMT -->|If| V_IF[visitIf]
+  VISIT_STMT -->|Block| V_BLOCK[visitBlock]
+  VISIT_STMT -->|For| V_FOR[visitFor]
+  VISIT_STMT -->|While| V_WHILE[visitWhile]
   VISIT_STMT -->|ExprStmt| V_EXPR[visitExprStmt]
   
   V_PRINT --> EVAL["eval(Expr)"]
+  V_INPUT --> ENV_ASSIGN[env.assign]
+  V_INPUT --> PARSE[parseInputValue]
   V_VARDECL --> EVAL
+  V_VARDECL --> ENV_DECL[env.declare]
+  V_IF --> EVAL
+  V_IF --> TRUTHY[isTruthy]
+  V_BLOCK --> EXEC
+  V_FOR --> EVAL
+  V_FOR --> TRUTHY
+  V_WHILE --> EVAL
+  V_WHILE --> TRUTHY
   V_EXPR --> EVAL
   
   EVAL --> VISIT_EXPR{Expression Type}
@@ -31,11 +46,19 @@ flowchart TD
   VISIT_EXPR -->|Variable| V_VAR[visitVariable]
   VISIT_EXPR -->|Assign| V_ASSIGN[visitAssign]
   VISIT_EXPR -->|Binary| V_BIN[visitBinary]
+  VISIT_EXPR -->|Unary| V_UNARY[visitUnary]
+  VISIT_EXPR -->|Postfix| V_POSTFIX[visitPostfix]
+  VISIT_EXPR -->|Grouping| V_GROUP[visitGrouping]
   
   V_PRINT --> STRINGIFY[stringify]
   V_VAR --> ENV_GET[env.get]
-  V_ASSIGN --> ENV_DEF[env.define/assign]
-  V_VARDECL --> ENV_DECL[env.declare]
+  V_ASSIGN --> ENV_DEF[env.assign]
+  V_UNARY --> REQ_NUM[requireNumber]
+  V_UNARY --> REQ_BOOL[requireBoolean]
+  V_POSTFIX --> REQ_NUM
+  V_BIN --> STRINGIFY
+  V_BIN --> REQ_NUM
+  V_BIN --> REQ_BOOL
 ```
 
 ## Public Interface
@@ -149,6 +172,226 @@ MUGNA NUMERO x=5, y, z=10
 → `s.type = NUMERO`  
 → `s.items = [Item("x", Literal(5)), Item("y", null), Item("z", Literal(10))]`  
 → Calls: `declare("x", NUMERO, 5)`, `declare("y", NUMERO, null)`, `declare("z", NUMERO, 10)`
+
+### `visitInput(Stmt.Input s) → Void`
+
+**Purpose**: Execute DAWAT input command, reading comma-separated values from user
+
+**Input**:
+- `s.varNames`: List of variable names to read into
+- `s.dawatToken`: Token for error reporting
+
+**Algorithm**:
+```java
+String prompt = "Enter values for: " + String.join(", ", s.varNames);
+String line = ioHandler.readInput(prompt);
+String[] values = line.split(",");
+
+// Validate count
+if (values.length != s.varNames.size()) throw error;
+
+// Assign each value
+for (int i = 0; i < s.varNames.size(); i++) {
+    String varName = s.varNames.get(i);
+    String inputValue = values[i].trim();
+    
+    // Validate variable exists
+    if (!env.isDeclared(varName)) throw error;
+    
+    // Get type and parse value
+    TokenType type = env.getType(varName);
+    Object value = parseInputValue(inputValue, type, varName, s.dawatToken);
+    env.assign(varName, value);
+}
+```
+
+**Side Effects**:
+- Reads input from `ioHandler` (blocks until input available)
+- Calls `env.assign()` for each variable
+- Type validation and coercion via `parseInputValue()`
+
+**Error Conditions**:
+- No input available (empty stream)
+- Value count mismatch
+- Undefined variable reference
+- Invalid input format for variable type
+
+**Debug Recipe**: DAWAT not working?
+1. Check `s.varNames` - all variables parsed correctly?
+2. Verify `ioHandler.hasInput()` - input stream populated?
+3. Step through `parseInputValue()` - type parsing working?
+4. Check `env.assign()` calls - assignments succeeding?
+
+**Examples**:
+```bpp
+MUGNA NUMERO x, y
+DAWAT: x, y
+@@ User inputs: 5, 10
+```
+→ Reads `"5, 10"` → splits to `["5", "10"]`
+→ `parseInputValue("5", NUMERO)` → Integer(5)
+→ `parseInputValue("10", NUMERO)` → Integer(10)
+→ `env.assign("x", 5)`, `env.assign("y", 10)`
+
+### `visitIf(Stmt.If s) → Void`
+
+**Purpose**: Execute KUNG conditional statements (if-else if-else)
+
+**Input**:
+- `s.condition`: Boolean expression to evaluate
+- `s.thenBranch`: Statement to execute if condition is true
+- `s.elseBranch`: Optional statement for else/else-if branch
+
+**Algorithm**:
+```java
+Object conditionValue = eval(s.condition);
+
+if (isTruthy(conditionValue)) {
+    execute(s.thenBranch);
+} else if (s.elseBranch != null) {
+    execute(s.elseBranch);
+}
+```
+
+**Truthiness Rules** (via `isTruthy()`):
+- Boolean `true` → truthy
+- Boolean `false` → falsy
+- String `"OO"` → truthy
+- String `"DILI"` → falsy
+- All other values → falsy
+
+**Debug Recipe**: Conditional not branching correctly?
+1. Check `eval(s.condition)` - expression evaluating to expected value?
+2. Verify `isTruthy()` result - truthiness rules applied correctly?
+3. Check branch execution - correct `execute()` call?
+4. For nested ifs: verify AST structure (else belongs to which if?)
+
+**Examples**:
+```bpp
+KUNG (x > 5)
+PUNDOK{
+    IPAKITA: "x is greater than 5"
+}
+KUNG WALA
+PUNDOK{
+    IPAKITA: "x is not greater than 5"
+}
+```
+→ `s.condition = Binary(Variable("x"), ">", Literal(5))`
+→ Evaluates condition → `true` or `false`
+→ Executes appropriate branch
+
+### `visitBlock(Stmt.Block s) → Void`
+
+**Purpose**: Execute block of statements enclosed in PUNDOK{}
+
+**Input**:
+- `s.statements`: List of statements to execute sequentially
+
+**Algorithm**:
+```java
+for (Stmt stmt : s.statements) {
+    execute(stmt);
+}
+```
+
+**Side Effects**: Executes each statement in order
+
+**Debug Recipe**: Block not executing correctly?
+1. Check `s.statements.size()` - all statements parsed?
+2. Step through each `execute(stmt)` call
+3. Verify execution order matches source code
+
+**Examples**:
+```bpp
+PUNDOK{
+    MUGNA NUMERO x = 5
+    IPAKITA: x
+}
+```
+→ `s.statements = [VarDecl("x", 5), Print([Variable("x")])]`
+→ Executes sequentially
+
+### `visitFor(Stmt.For s) → Void`
+
+**Purpose**: Execute ALANG SA (for) loops
+
+**Input**:
+- `s.initializer`: Optional initialization statement (e.g., `ctr=1`)
+- `s.condition`: Loop condition expression
+- `s.update`: Optional update statement (e.g., `ctr++`)
+- `s.body`: Statement to execute each iteration
+
+**Algorithm**:
+```java
+// Execute initializer once
+if (s.initializer != null) {
+    execute(s.initializer);
+}
+
+// Loop while condition is true
+while (isTruthy(eval(s.condition))) {
+    execute(s.body);      // Execute body first
+    
+    if (s.update != null) {
+        execute(s.update); // Then update
+    }
+}
+```
+
+**Execution Order**: initializer → (condition → body → update)*
+
+**Debug Recipe**: For loop issues?
+1. Check `s.initializer` execution - variable initialized correctly?
+2. Verify `eval(s.condition)` - condition evaluating as expected?
+3. Step through body execution - correct behavior?
+4. Check `s.update` - increment/decrement working?
+5. Ensure loop terminates - no infinite loops
+
+**Examples**:
+```bpp
+ALANG SA (ctr=1, ctr<=5, ctr++)
+PUNDOK{
+    IPAKITA: ctr & $
+}
+```
+→ `s.initializer = ExprStmt(Assign("ctr", 1))`
+→ `s.condition = Binary(Variable("ctr"), "<=", Literal(5))`
+→ `s.update = ExprStmt(Postfix(Variable("ctr"), "++"))`
+→ Executes 5 iterations
+
+### `visitWhile(Stmt.While s) → Void`
+
+**Purpose**: Execute SAMTANG (while) loops
+
+**Input**:
+- `s.condition`: Loop condition expression
+- `s.body`: Statement to execute each iteration
+
+**Algorithm**:
+```java
+while (isTruthy(eval(s.condition))) {
+    execute(s.body);
+}
+```
+
+**Debug Recipe**: While loop issues?
+1. Check `eval(s.condition)` - condition evaluating correctly?
+2. Verify `isTruthy()` conversion - proper boolean logic?
+3. Step through body execution - correct behavior?
+4. Ensure loop terminates - condition eventually becomes false?
+
+**Examples**:
+```bpp
+MUGNA NUMERO ctr = 1
+SAMTANG (ctr <= 5)
+PUNDOK{
+    IPAKITA: ctr & $
+    ctr = ctr + 1
+}
+```
+→ `s.condition = Binary(Variable("ctr"), "<=", Literal(5))`
+→ Loops 5 times, outputs 1-5
 
 ### `visitExprStmt(Stmt.ExprStmt s) → Void`
 
@@ -279,6 +522,134 @@ throw new RuntimeException("Unsupported binary operator: " + e.operator.lexeme);
 ```bpp
 "hello" & "world"  → stringify("hello") + stringify("world") → "helloworld"
 x & 42             → stringify(5) + stringify(42) → "542"
+```
+
+### `visitUnary(Expr.Unary e) → Object`
+
+**Purpose**: Evaluate unary operations (+, -, ++, --, DILI)
+
+**Input**:
+- `e.operand`: Expression to apply operator to
+- `e.operator`: Unary operator token
+
+**Algorithm**:
+```java
+Object operand = eval(e.operand);
+
+switch (e.operator.type) {
+    case MINUS:  // Negation
+        Number num = requireNumber(operand, e.operator);
+        return (num instanceof Integer) ? -num.intValue() : -num.floatValue();
+    
+    case PLUS:   // Unary positive
+        return requireNumber(operand, e.operator);
+    
+    case PLUS_PLUS:  // Prefix increment
+        if (e.operand instanceof Expr.Variable var) {
+            Number n = requireNumber(operand, e.operator);
+            Object result = (n instanceof Integer) 
+                ? n.intValue() + 1 
+                : n.floatValue() + 1.0f;
+            env.assign(var.name, result);
+            return result;  // Return new value
+        }
+        throw error("Increment requires variable");
+    
+    case MINUS_MINUS:  // Prefix decrement
+        // Similar to ++, decrements variable
+    
+    case DILI:  // Logical NOT
+        boolean bool = requireBoolean(operand, e.operator, "DILI operator");
+        return !bool;
+}
+```
+
+**Supported Operators**:
+- `+` : Unary positive (validates number, returns as-is)
+- `-` : Negation (returns negative of number)
+- `++`: Prefix increment (increments variable, returns new value)
+- `--`: Prefix decrement (decrements variable, returns new value)
+- `DILI`: Logical NOT (inverts boolean)
+
+**Side Effects**: Increment/decrement modify variable values via `env.assign()`
+
+**Debug Recipe**: Unary operation errors?
+1. Check `eval(e.operand)` - operand correct type?
+2. Verify `e.operator.type` - expected operator?
+3. For ++/--: ensure operand is Variable, not literal
+4. Check `requireNumber()` / `requireBoolean()` - type validation working?
+
+**Examples**:
+```bpp
+-5              → Unary(MINUS, Literal(5)) → -5
+++x             → Unary(PLUS_PLUS, Variable("x")) → increments x, returns new value
+DILI (x > 5)    → Unary(DILI, Binary(...)) → inverts boolean result
+```
+
+### `visitPostfix(Expr.Postfix e) → Object`
+
+**Purpose**: Evaluate postfix operations (x++, x--)
+
+**Input**:
+- `e.operand`: Variable expression (must be Variable)
+- `e.operator`: Postfix operator token (PLUS_PLUS or MINUS_MINUS)
+
+**Algorithm**:
+```java
+Object operand = eval(e.operand);
+
+switch (e.operator.type) {
+    case PLUS_PLUS:  // Postfix increment
+        if (e.operand instanceof Expr.Variable var) {
+            Number n = requireNumber(operand, e.operator);
+            Object oldValue = operand;  // Save old value
+            Object newValue = (n instanceof Integer)
+                ? n.intValue() + 1
+                : n.floatValue() + 1.0f;
+            env.assign(var.name, newValue);
+            return oldValue;  // Return old value (postfix behavior)
+        }
+        throw error("Postfix increment requires variable");
+    
+    case MINUS_MINUS:  // Postfix decrement
+        // Similar to ++, returns old value
+}
+```
+
+**Key Difference from Prefix**: Returns **old value** before modification
+
+**Side Effects**: Modifies variable value via `env.assign()`
+
+**Debug Recipe**: Postfix operation errors?
+1. Check `e.operand` - is it an Expr.Variable?
+2. Verify variable exists and is numeric
+3. Confirm return value is old value (before increment/decrement)
+
+**Examples**:
+```bpp
+x++  → value before increment
+```
+If `x = 5`:
+- Prefix `++x` returns `6`, `x` becomes `6`
+- Postfix `x++` returns `5`, `x` becomes `6`
+
+### `visitGrouping(Expr.Grouping e) → Object`
+
+**Purpose**: Evaluate parenthesized expressions
+
+**Input**:
+- `e.expression`: Expression inside parentheses
+
+**Algorithm**:
+```java
+return eval(e.expression);  // Simply evaluate inner expression
+```
+
+**Purpose**: Grouping is purely for precedence override in parsing; at runtime it just evaluates the inner expression
+
+**Examples**:
+```bpp
+(2 + 3) * 4  → Grouping ensures 2+3 evaluated first
 ```
 
 ## Helper Functions

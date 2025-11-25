@@ -46,39 +46,73 @@ flowchart TD
 ```bnf
 program        → SUGOD statement* KATAPUSAN EOF
 
-statement      → printStmt | inputStmt | varDecl | exprStmt
+statement      → printStmt | inputStmt | varDecl | ifStmt | forStmt 
+                 | whileStmt | block | exprStmt
+
 printStmt      → IPAKITA ":" expression ( "&" expression )*
+
 inputStmt      → DAWAT ":" identifier ( "," identifier )*
+
 varDecl        → MUGNA type identifier ( "=" expression )? 
                  ( "," identifier ( "=" expression )? )*
+
+ifStmt         → KUNG "(" expression ")" PUNDOK "{" statement* "}"
+                 ( KUNG DILI "(" expression ")" PUNDOK "{" statement* "}" )*
+                 ( KUNG WALA PUNDOK "{" statement* "}" )?
+
+forStmt        → ALANG SA "(" assignment "," expression "," assignment ")"
+                 PUNDOK "{" statement* "}"
+
+whileStmt      → SAMTANG "(" expression ")" PUNDOK "{" statement* "}"
+
+block          → PUNDOK "{" statement* "}"
+
 exprStmt       → assignment
 
 type           → NUMERO | LETRA | TINUOD | TIPIK
 ```
 
-### Expressions (Increment 2 - Complete)
+### Expressions (Complete - All Increments)
 ```bnf
 assignment     → IDENTIFIER "=" assignment | logical
+
 logical        → logicalAnd ( "O" logicalAnd )*
+
 logicalAnd     → equality ( "UG" equality )*
+
 equality       → comparison ( ( "==" | "<>" ) comparison )*
+
 comparison     → concatenation ( ( ">" | ">=" | "<" | "<=" ) concatenation )*
+
 concatenation  → term ( "&" term )*
+
 term           → factor ( ( "+" | "-" ) factor )*
+
 factor         → unary ( ( "*" | "/" | "%" ) unary )*
-unary          → ( "+" | "-" | "++" | "--" | "DILI" ) unary | primary
-primary        → NUMBER | STRING | CHAR | "$" | "(" assignment ")" | IDENTIFIER
-```
-varDecl        → MUGNA type identifier ( "=" expression )? 
-                 ( "," identifier ( "=" expression )? )*
-exprStmt       → assignment
 
-type           → NUMERO | LETRA | TINUOD | TIPIK
+unary          → ( "+" | "-" | "++" | "--" | "DILI" ) unary | postfix
+
+postfix        → primary ( "++" | "--" )*
+
+primary        → NUMBER | STRING | CHAR | "$" 
+                 | "(" assignment ")" | IDENTIFIER
 ```
 
-### Expressions
-```bnf
-assignment     → IDENTIFIER "=" assignment | concatenation
+### Operator Precedence (Highest to Lowest)
+
+| Level | Operators | Associativity | Category |
+|-------|-----------|---------------|----------|
+| 1 | `=` | Right | Assignment |
+| 2 | `O` | Left | Logical OR |
+| 3 | `UG` | Left | Logical AND |
+| 4 | `==` `<>` | Left | Equality |
+| 5 | `>` `>=` `<` `<=` | Left | Comparison |
+| 6 | `&` | Left | Concatenation |
+| 7 | `+` `-` | Left | Addition/Subtraction |
+| 8 | `*` `/` `%` | Left | Multiplication/Division/Modulo |
+| 9 | `+` `-` `++` `--` `DILI` | Right | Unary (prefix) |
+| 10 | `++` `--` | Left | Postfix |
+| 11 | `()` literals identifiers | N/A | Primary |
 concatenation  → primary ( "&" primary )*
 primary        → STRING | NUMBER | CHAR | "$" | IDENTIFIER
 ```
@@ -107,9 +141,41 @@ classDiagram
         +accept(Visitor) R
     }
     
+    class Input {
+        +Token dawatToken
+        +List~String~ varNames
+        +accept(Visitor) R
+    }
+    
     class VarDecl {
         +TokenType type
         +List~Item~ items
+        +accept(Visitor) R
+    }
+    
+    class If {
+        +Expr condition
+        +Stmt thenBranch
+        +Stmt elseBranch
+        +accept(Visitor) R
+    }
+    
+    class Block {
+        +List~Stmt~ statements
+        +accept(Visitor) R
+    }
+    
+    class For {
+        +Stmt initializer
+        +Expr condition
+        +Stmt update
+        +Stmt body
+        +accept(Visitor) R
+    }
+    
+    class While {
+        +Expr condition
+        +Stmt body
         +accept(Visitor) R
     }
     
@@ -124,7 +190,12 @@ classDiagram
     }
     
     Stmt <|-- Print
+    Stmt <|-- Input
     Stmt <|-- VarDecl  
+    Stmt <|-- If
+    Stmt <|-- Block
+    Stmt <|-- For
+    Stmt <|-- While
     Stmt <|-- ExprStmt
     VarDecl *-- Item
 ```
@@ -135,10 +206,37 @@ classDiagram
 - `parts`: List of expressions to concatenate and display
 - Used for: `IPAKITA: "Hello" & $ & "World"`
 
+**Stmt.Input**: Represents `DAWAT` input statements
+- `dawatToken`: Token for error reporting
+- `varNames`: List of variable names to receive input
+- Used for: `DAWAT: x, y, z`
+
 **Stmt.VarDecl**: Represents `MUGNA` variable declarations
 - `type`: Token type (NUMERO, LETRA, TINUOD, TIPIK)
 - `items`: List of variable declaration items with optional initializers
 - Used for: `MUGNA NUMERO x, y=5, z`
+
+**Stmt.If**: Represents `KUNG` conditional statements
+- `condition`: Boolean expression to evaluate
+- `thenBranch`: Statement to execute if true
+- `elseBranch`: Optional else/else-if branch
+- Used for: `KUNG (x > 5) PUNDOK{ ... } KUNG WALA PUNDOK{ ... }`
+
+**Stmt.Block**: Represents `PUNDOK` block statements
+- `statements`: List of statements in the block
+- Used for: `PUNDOK{ statement1 statement2 ... }`
+
+**Stmt.For**: Represents `ALANG SA` for loops
+- `initializer`: Assignment statement (e.g., `ctr=1`)
+- `condition`: Loop condition expression
+- `update`: Update statement (e.g., `ctr++`)
+- `body`: Loop body block
+- Used for: `ALANG SA (ctr=1, ctr<=10, ctr++) PUNDOK{ ... }`
+
+**Stmt.While**: Represents `SAMTANG` while loops
+- `condition`: Loop condition expression
+- `body`: Loop body block
+- Used for: `SAMTANG (ctr <= 5) PUNDOK{ ... }`
 
 **Stmt.ExprStmt**: Wrapper for expressions used as statements
 - `expr`: The expression (typically assignments)
@@ -159,6 +257,7 @@ classDiagram
     }
     
     class Variable {
+        +Token token
         +String name
         +accept(Visitor) R
     }
@@ -176,11 +275,67 @@ classDiagram
         +accept(Visitor) R
     }
     
+    class Unary {
+        +Token operator
+        +Expr operand
+        +accept(Visitor) R
+    }
+    
+    class Postfix {
+        +Expr operand
+        +Token operator
+        +accept(Visitor) R
+    }
+    
+    class Grouping {
+        +Expr expression
+        +accept(Visitor) R
+    }
+    
     Expr <|-- Literal
     Expr <|-- Variable
     Expr <|-- Assign
     Expr <|-- Binary
+    Expr <|-- Unary
+    Expr <|-- Postfix
+    Expr <|-- Grouping
 ```
+
+#### Expression Node Details
+
+**Expr.Literal**: Constant values
+- `value`: The literal value (String, Number, Character, Boolean)
+- Used for: `42`, `"Hello"`, `'a'`, `"\n"` (from `$`)
+
+**Expr.Variable**: Variable references
+- `token`: Token for error reporting with line/column info
+- `name`: Variable identifier
+- Used for: `x`, `counter`, `total_sum`
+
+**Expr.Assign**: Assignment expressions
+- `name`: Target variable name
+- `value`: Expression to assign
+- Used for: `x = 5`, `y = z = 10` (right-associative)
+
+**Expr.Binary**: Binary operations
+- `left`: Left operand expression
+- `operator`: Operator token (`+`, `-`, `*`, `/`, `%`, `>`, `<`, `==`, `<>`, `UG`, `O`, `&`)
+- `right`: Right operand expression
+- Used for: `a + b`, `x > 5`, `"Hello" & "World"`, `flag UG condition`
+
+**Expr.Unary**: Prefix unary operations
+- `operator`: Operator token (`-`, `+`, `++`, `--`, `DILI`)
+- `operand`: Expression to operate on
+- Used for: `-x`, `++counter`, `DILI flag`
+
+**Expr.Postfix**: Postfix unary operations
+- `operand`: Expression to operate on
+- `operator`: Operator token (`++`, `--`)
+- Used for: `counter++`, `index--`
+
+**Expr.Grouping**: Parenthesized expressions
+- `expression`: The grouped expression
+- Used for: `(a + b) * c`, `(x > 5 UG y < 10)`
 
 #### Expression Node Details
 

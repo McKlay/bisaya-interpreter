@@ -240,45 +240,6 @@ public class Lexer {
   }
 
   /**
-   * START OF LINE CHECKER - Determines if we're at the start of a line
-   * 
-   * Comments in Bisaya++ only exist at the start of lines.
-   * A line starts either at the beginning of the file or after a NEWLINE token.
-   * 
-   * @return true if we're at the start of a line (comment context)
-   */
-  private boolean isAtStartOfLine() {
-    // If no tokens generated yet, we're at start of file (start of line)
-    if (tokens.isEmpty()) return true;
-    
-    // Get the last token
-    Token lastToken = tokens.get(tokens.size() - 1);
-    
-    // If the last token is a NEWLINE, we're at the start of a new line
-    return lastToken.type == TokenType.NEWLINE;
-  }
-
-  /**
-   * SPACE AHEAD CHECKER - Looks ahead in current line for spaces
-   * 
-   * Used to disambiguate comments from decrement operators at line start.
-   * Comments typically contain text with spaces: "--this is a comment"
-   * Decrement statements are usually just: "--x"
-   * 
-   * @return true if there's a space character before the next newline
-   */
-  private boolean hasSpaceAheadInLine() {
-    int lookahead = current;
-    while (lookahead < src.length()) {
-      char c = src.charAt(lookahead);
-      if (c == '\n' || c == '\r') return false; // End of line reached, no space found
-      if (c == ' ' || c == '\t') return true;   // Space found
-      lookahead++;
-    }
-    return false; // EOF reached, no space found
-  }
-
-  /**
    * COMMENT PROCESSOR - Consume line comment until newline
    * 
    * Handles '@@' style comments by consuming all characters until end of line.
@@ -344,13 +305,12 @@ public class Lexer {
     advance(); // consume the ']'
     
     String code = sb.toString();
-    // TODO: Fixed - Only allow specific escape sequences as per specification
     String escaped;
     switch (code) {
       case "&" -> escaped = "&";      // literal ampersand
       case "[" -> escaped = "[";      // literal left bracket  
       case "]" -> escaped = "]";      // literal right bracket
-      case "" -> escaped = "";        // empty escape code for []
+      case "" -> escaped = "";        // empty string
       default -> {
         // For Increment 1, only [[, ]], and [&] are allowed per specification
         ErrorReporter.error(line, col, "Invalid escape sequence: [" + code + "]. Only [[, ]], and [&] are supported.");
@@ -417,9 +377,8 @@ public class Lexer {
    * - Calls ErrorReporter for malformed character literals
    */
   private void character() {
-    // TODO: Fixed - Better detection of unclosed character literals
     if (isAtEnd() || peek() == '\n') {
-      ErrorReporter.error(line, col, "Unterminated character literal - missing closing quote.");
+      ErrorReporter.error(line, col, "Unterminated character literal.");
       return;
     }
     char value = advance();
