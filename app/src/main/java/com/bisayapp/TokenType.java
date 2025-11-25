@@ -8,10 +8,11 @@ public enum TokenType {
   PLUS, MINUS, STAR, SLASH, PERCENT,
   AMPERSAND, DOLLAR, EQUAL,
 
-  // Two-char comparisons
+  // Two-char operators
   BANG, BANG_EQUAL, EQUAL_EQUAL,
   GREATER, GREATER_EQUAL, LESS, LESS_EQUAL,
   LT_GT, // "<>" not equal (per spec)
+  PLUS_PLUS, MINUS_MINUS, // ++ and --
 
   // Literals
   IDENTIFIER, STRING, NUMBER, CHAR,
@@ -22,6 +23,8 @@ public enum TokenType {
   MUGNA,
   NUMERO, LETRA, TINUOD, TIPIK,
   KUNG, WALA, DILI, UG, O, PUNDOK,
+  ALANG, SA, // For loop keywords
+  SAMTANG, // While loop keyword
 
   // Special tokens
   NEWLINE,

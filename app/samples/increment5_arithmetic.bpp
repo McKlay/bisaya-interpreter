@@ -1,0 +1,22 @@
+@@ Increment 5: SAMTANG with Arithmetic Operations
+@@ This program calculates the sum and factorial using while loops
+
+SUGOD
+@@ Sum calculation
+MUGNA NUMERO sum = 0, i = 1
+SAMTANG (i <= 10)
+PUNDOK{
+    sum = sum + i
+    i = i + 1
+}
+IPAKITA: "Sum of 1 to 10: " & sum & $
+
+@@ Factorial calculation
+MUGNA NUMERO n = 5, factorial = 1
+SAMTANG (n > 0)
+PUNDOK{
+    factorial = factorial * n
+    n = n - 1
+}
+IPAKITA: "Factorial of 5: " & factorial & $
+KATAPUSAN

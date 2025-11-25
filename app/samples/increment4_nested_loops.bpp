@@ -1,0 +1,17 @@
+@@ Nested loops example
+@@ Creates a multiplication table
+SUGOD
+    MUGNA NUMERO row, col, product
+    
+    IPAKITA: "Multiplication Table:" & $
+    
+    ALANG SA (row=1, row<=5, row++)
+    PUNDOK{
+        ALANG SA (col=1, col<=5, col++)
+        PUNDOK{
+            product = row * col
+            IPAKITA: product & [&]
+        }
+        IPAKITA: $
+    }
+KATAPUSAN

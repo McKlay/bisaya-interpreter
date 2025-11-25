@@ -1,10 +1,15 @@
 package com.bisayapp;
 
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 public class Bisaya {
+    /**
+     * Main CLI entry point
+     */
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
             System.err.println("Usage: bisaya <source.bpp>");
@@ -30,6 +35,90 @@ public class Bisaya {
 
         System.out.println("Tokenized & Parsed Successfully");
         System.out.println("=== PROGRAM OUTPUT ===");
-        new Interpreter(System.out).interpret(program);
+        new Interpreter(System.out, System.in).interpret(program);
+    }
+    
+    /**
+     * Run a Bisaya++ file programmatically (used by GUI)
+     * @param filePath Path to the .bpp file
+     * @param out Output stream for program output
+     * @param in Input stream for program input
+     * @throws Exception if there are errors during execution
+     */
+    public static void runFile(String filePath, PrintStream out, InputStream in) throws Exception {
+        // Reset error state
+        ErrorReporter.reset();
+        
+        String source = Files.readString(Path.of(filePath));
+        Lexer lexer = new Lexer(source);
+        List<Token> tokens = lexer.scanTokens();
+
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Lexical errors found");
+        }
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> program = parser.parseProgram();
+        
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Syntax errors found");
+        }
+
+        new Interpreter(out, in).interpret(program);
+    }
+    
+    /**
+     * Run Bisaya++ source code directly (used by GUI)
+     * @param source The Bisaya++ source code
+     * @param out Output stream for program output
+     * @param in Input stream for program input
+     * @throws Exception if there are errors during execution
+     */
+    public static void runSource(String source, PrintStream out, InputStream in) throws Exception {
+        // Reset error state
+        ErrorReporter.reset();
+        
+        Lexer lexer = new Lexer(source);
+        List<Token> tokens = lexer.scanTokens();
+
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Lexical errors found");
+        }
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> program = parser.parseProgram();
+        
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Syntax errors found");
+        }
+
+        new Interpreter(out, in).interpret(program);
+    }
+    
+    /**
+     * Run Bisaya++ source code with custom IOHandler (used by GUI with DAWAT support)
+     * @param source The Bisaya++ source code
+     * @param ioHandler The I/O handler for input/output operations
+     * @throws Exception if there are errors during execution
+     */
+    public static void runSource(String source, IOHandler ioHandler) throws Exception {
+        // Reset error state
+        ErrorReporter.reset();
+        
+        Lexer lexer = new Lexer(source);
+        List<Token> tokens = lexer.scanTokens();
+
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Lexical errors found");
+        }
+
+        Parser parser = new Parser(tokens);
+        List<Stmt> program = parser.parseProgram();
+        
+        if (ErrorReporter.hadError()) {
+            throw new RuntimeException("Syntax errors found");
+        }
+
+        new Interpreter(ioHandler).interpret(program);
     }
 }

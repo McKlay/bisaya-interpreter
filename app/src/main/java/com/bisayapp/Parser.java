@@ -1,7 +1,9 @@
 package com.bisayapp;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Recursive Descent Parser for Bisaya++ Programming Language
@@ -22,6 +24,9 @@ public class Parser {
     
     /** Current position in the token stream */
     private int current = 0;
+    
+    /** Tracks variables declared during parsing to catch undeclared variable usage early */
+    private final Set<String> declaredVariables = new HashSet<>();
 
     /**
      * Constructs a new Parser with the given token list
@@ -84,10 +89,11 @@ public class Parser {
     /**
      * Parses a single statement
      * 
-     * Grammar: printStmt | varDecl | exprStmt
+     * Grammar: printStmt | inputStmt | varDecl | exprStmt
      * 
      * Determines the type of statement by looking at the first token:
      * - IPAKITA → print statement
+     * - DAWAT → input statement
      * - MUGNA → variable declaration
      * - Other → expression statement (assignments, etc.)
      * 
@@ -96,7 +102,12 @@ public class Parser {
      */
     private Stmt statement() {
         if (match(TokenType.IPAKITA)) return printStmt();
+        if (match(TokenType.DAWAT))   return inputStmt();
         if (match(TokenType.MUGNA))   return varDecl();
+        if (match(TokenType.KUNG))    return ifStmt();
+        if (match(TokenType.ALANG))   return forStmt();
+        if (match(TokenType.SAMTANG)) return whileStmt();
+        if (match(TokenType.PUNDOK))  return block();
         return exprStmt(); // Default: treat as expression statement (assignments, etc.)
     }
 
@@ -114,11 +125,11 @@ public class Parser {
         consume(TokenType.COLON, "Expect ':' after IPAKITA.");
         
         List<Expr> parts = new ArrayList<>();
-        parts.add(primaryExpr()); // First expression is required
+        parts.add(assignment()); // First expression is required - allow full expressions
 
         // Parse additional expressions separated by & (concatenation)
         while (match(TokenType.AMPERSAND)) {
-            parts.add(primaryExpr());
+            parts.add(assignment()); // Allow full expressions in concatenation too
         }
 
         // Check if there are unexpected tokens after the expression(s)
@@ -128,6 +139,61 @@ public class Parser {
         }
 
         return new Stmt.Print(parts);
+    }
+
+    /**
+     * Parses DAWAT (input) statements
+     * 
+     * Grammar: DAWAT ":" identifier ("," identifier)*
+     * 
+     * Example: DAWAT: x, y, z
+     * 
+     * @return Input statement AST node containing list of variable names
+     * @throws ParseError if input statement syntax is invalid
+     */
+    private Stmt inputStmt() {
+        Token dawatToken = previous(); // Store the DAWAT token for error reporting
+        consume(TokenType.COLON, "Expect ':' after DAWAT.");
+        
+        List<String> varNames = new ArrayList<>();
+        List<String> seenVariables = new ArrayList<>(); // Track duplicates in this DAWAT statement
+        Token firstVar = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        
+        // Validate that the variable is declared
+        if (!declaredVariables.contains(firstVar.lexeme)) {
+            throw error(firstVar, "Undefined variable '" + firstVar.lexeme + 
+                "'. Variables must be declared with MUGNA before using in DAWAT.");
+        }
+        
+        varNames.add(firstVar.lexeme);
+        seenVariables.add(firstVar.lexeme);
+
+        // Parse additional variables separated by comma
+        while (match(TokenType.COMMA)) {
+            Token varToken = consume(TokenType.IDENTIFIER, "Expect variable name after ','.");
+            
+            // Validate that the variable is declared
+            if (!declaredVariables.contains(varToken.lexeme)) {
+                throw error(varToken, "Undefined variable '" + varToken.lexeme + 
+                    "'. Variables must be declared with MUGNA before using in DAWAT.");
+            }
+            
+            // Check for duplicate variables in this DAWAT statement
+            if (seenVariables.contains(varToken.lexeme)) {
+                throw error(varToken, "Duplicate variable '" + varToken.lexeme + 
+                    "' in DAWAT statement. Each variable should appear only once.");
+            }
+            
+            varNames.add(varToken.lexeme);
+            seenVariables.add(varToken.lexeme);
+        }
+
+        // Check for unexpected tokens after the variable list
+        if (!check(TokenType.NEWLINE) && !isAtEnd() && !check(TokenType.EOF)) {
+            throw error(peek(), "Expected newline or end of program after DAWAT statement.");
+        }
+
+        return new Stmt.Input(dawatToken, varNames);
     }
 
     /**
@@ -160,6 +226,9 @@ public class Parser {
                 throw error(previous(), "Cannot declare variable '" + name + "' twice in the same statement.");
             }
             declaredNames.add(name);
+            
+            // Add to global declared variables tracking
+            declaredVariables.add(name);
             
             Expr init = null;
             
@@ -202,6 +271,201 @@ public class Parser {
         return new Stmt.ExprStmt(e);
     }
 
+    /**
+     * Parses KUNG (if) statements with optional KUNG WALA (else) or KUNG DILI (else if)
+     * 
+     * Grammar:
+     *   KUNG "(" expression ")" PUNDOK "{" statement* "}"
+     *   ("KUNG" "DILI" "(" expression ")" PUNDOK "{" statement* "}")*
+     *   ("KUNG" "WALA" PUNDOK "{" statement* "}")?
+     * 
+     * Examples:
+     * - KUNG (x > 5) PUNDOK { IPAKITA: x }
+     * - KUNG (x > 5) PUNDOK { ... } KUNG WALA PUNDOK { ... }
+     * - KUNG (x > 5) PUNDOK { ... } KUNG DILI (x > 3) PUNDOK { ... } KUNG WALA PUNDOK { ... }
+     * 
+     * @return If statement AST node
+     * @throws ParseError if if statement syntax is invalid
+     */
+    private Stmt ifStmt() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after KUNG.");
+        Expr condition = assignment(); // Parse condition expression
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        skipNewlines();
+        
+        // Parse the then branch (must be a PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG condition.");
+        Stmt thenBranch = block();
+        
+        skipNewlines();
+        
+        // Check for else-if (KUNG DILI) or else (KUNG WALA)
+        Stmt elseBranch = null;
+        if (check(TokenType.KUNG)) {
+            // Peek ahead to see if this is KUNG DILI or KUNG WALA
+            if (checkNext(TokenType.DILI)) {
+                // KUNG DILI - else if
+                advance(); // consume KUNG
+                advance(); // consume DILI
+                elseBranch = parseElseIfChain();
+            } else if (checkNext(TokenType.WALA)) {
+                // KUNG WALA - else
+                advance(); // consume KUNG
+                advance(); // consume WALA
+                skipNewlines();
+                consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG WALA.");
+                elseBranch = block();
+            }
+        }
+        
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parses a chain of else-if (KUNG DILI) statements
+     * 
+     * This is a helper method for ifStmt() that handles multiple KUNG DILI clauses
+     * and an optional final KUNG WALA clause.
+     * 
+     * @return If statement representing the else-if chain
+     * @throws ParseError if syntax is invalid
+     */
+    private Stmt parseElseIfChain() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after KUNG DILI.");
+        Expr condition = assignment();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after KUNG DILI condition.");
+        skipNewlines();
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG DILI condition.");
+        Stmt thenBranch = block();
+        skipNewlines();
+        
+        // Check for more else-ifs or final else
+        Stmt elseBranch = null;
+        if (check(TokenType.KUNG)) {
+            if (checkNext(TokenType.DILI)) {
+                // Another else-if
+                advance(); // consume KUNG
+                advance(); // consume DILI
+                elseBranch = parseElseIfChain(); // Recursively handle the chain
+            } else if (checkNext(TokenType.WALA)) {
+                // Final else
+                advance(); // consume KUNG
+                advance(); // consume WALA
+                skipNewlines();
+                consume(TokenType.PUNDOK, "Expect 'PUNDOK' after KUNG WALA.");
+                elseBranch = block();
+            }
+        }
+        
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+
+    /**
+     * Parses ALANG SA (for loop) statements
+     * 
+     * Grammar: ALANG SA "(" initializer "," condition "," update ")" PUNDOK "{" statement* "}"
+     * 
+     * Example: ALANG SA (ctr=1, ctr<=10, ctr++) PUNDOK{ ... }
+     * 
+     * @return For statement AST node
+     * @throws ParseError if for loop syntax is invalid
+     */
+    private Stmt forStmt() {
+        skipNewlines();
+        consume(TokenType.SA, "Expect 'SA' after 'ALANG'.");
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'ALANG SA'.");
+        skipNewlines();
+        
+        // Parse initializer (assignment statement like ctr=1)
+        Stmt initializer = exprStmt();
+        skipNewlines();
+        
+        consume(TokenType.COMMA, "Expect ',' after loop initializer.");
+        skipNewlines();
+        
+        // Parse condition (expression like ctr<=10)
+        Expr condition = assignment();
+        skipNewlines();
+        
+        consume(TokenType.COMMA, "Expect ',' after loop condition.");
+        skipNewlines();
+        
+        // Parse update (expression statement like ctr++)
+        Stmt update = exprStmt();
+        skipNewlines();
+        
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after loop clauses.");
+        skipNewlines();
+        
+        // Parse body (must be PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after ALANG SA header.");
+        Stmt body = block();
+        
+        return new Stmt.For(initializer, condition, update, body);
+    }
+
+    /**
+     * Parses SAMTANG (while loop) statements
+     * 
+     * Grammar: SAMTANG "(" condition ")" PUNDOK "{" statement* "}"
+     * 
+     * Example: SAMTANG (ctr <= 5) PUNDOK{ ... }
+     * 
+     * @return While statement AST node
+     * @throws ParseError if while loop syntax is invalid
+     */
+    private Stmt whileStmt() {
+        skipNewlines();
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'SAMTANG'.");
+        skipNewlines();
+        
+        // Parse condition expression
+        Expr condition = assignment();
+        skipNewlines();
+        
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        skipNewlines();
+        
+        // Parse body (must be PUNDOK block)
+        consume(TokenType.PUNDOK, "Expect 'PUNDOK' after SAMTANG condition.");
+        Stmt body = block();
+        
+        return new Stmt.While(condition, body);
+    }
+
+    /**
+     * Parses a PUNDOK block statement
+     * 
+     * Grammar: "{" statement* "}"
+     * 
+     * Blocks group multiple statements together and are used in control structures
+     * 
+     * @return Block statement AST node containing list of statements
+     * @throws ParseError if block syntax is invalid
+     */
+    private Stmt block() {
+        consume(TokenType.LEFT_BRACE, "Expect '{' after PUNDOK.");
+        skipNewlines();
+        
+        List<Stmt> statements = new ArrayList<>();
+        
+        // Parse statements until we hit the closing brace
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            skipNewlines();
+            if (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+                statements.add(statement());
+                skipNewlines();
+            }
+        }
+        
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        
+        return new Stmt.Block(statements);
+    }
+
     // ========================================================================================
     // EXPRESSION PARSING (Level 2 - Precedence Order)
     // ========================================================================================
@@ -209,7 +473,7 @@ public class Parser {
     /**
      * Parses assignment expressions (highest precedence, right-associative)
      * 
-     * Grammar: IDENTIFIER "=" assignment | concatenation
+     * Grammar: IDENTIFIER "=" assignment | logical
      * 
      * Right-associativity means x=y=4 parses as x=(y=4)
      * 
@@ -217,7 +481,7 @@ public class Parser {
      * @throws ParseError if assignment target is invalid
      */
     private Expr assignment() {
-        Expr expr = concatenation(); // Try to parse as concatenation first
+        Expr expr = logical(); // Try to parse as logical first
         
         if (match(TokenType.EQUAL)) {
             Expr value = assignment(); // Right-associative: recurse on assignment
@@ -234,21 +498,98 @@ public class Parser {
     }
 
     /**
+     * Parses logical OR expressions (left-associative)
+     * 
+     * Grammar: logicalAnd ("O" logicalAnd)*
+     * 
+     * @return Binary expression for OR or lower-precedence expression
+     */
+    private Expr logical() {
+        Expr expr = logicalAnd();
+
+        while (match(TokenType.O)) {
+            Token operator = previous();
+            Expr right = logicalAnd();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses logical AND expressions (left-associative)
+     * 
+     * Grammar: equality ("UG" equality)*
+     * 
+     * @return Binary expression for AND or lower-precedence expression
+     */
+    private Expr logicalAnd() {
+        Expr expr = equality();
+
+        while (match(TokenType.UG)) {
+            Token operator = previous();
+            Expr right = equality();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses equality expressions (left-associative)
+     * 
+     * Grammar: comparison (("==" | "<>") comparison)*
+     * 
+     * @return Binary expression for equality/inequality or lower-precedence expression
+     */
+    private Expr equality() {
+        Expr expr = comparison();
+
+        while (match(TokenType.EQUAL_EQUAL) || match(TokenType.LT_GT)) {
+            Token operator = previous();
+            Expr right = comparison();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses comparison expressions (left-associative)
+     * 
+     * Grammar: term ((">" | ">=" | "<" | "<=") term)*
+     * 
+     * @return Binary expression for comparison or lower-precedence expression
+     */
+    private Expr comparison() {
+        Expr expr = concatenation();
+
+        while (match(TokenType.GREATER) || match(TokenType.GREATER_EQUAL) 
+            || match(TokenType.LESS) || match(TokenType.LESS_EQUAL)) {
+            Token operator = previous();
+            Expr right = concatenation();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
      * Parses concatenation expressions (left-associative)
      * 
-     * Grammar: primary ("&" primary)*
+     * Grammar: term ("&" term)*
      * 
      * Left-associativity means "A"&"B"&"C" parses as ("A"&"B")&"C"
      * 
-     * @return Binary expression for concatenation or primary expression
+     * @return Binary expression for concatenation or lower-precedence expression
      */
     private Expr concatenation() {
-        Expr expr = primaryExpr(); // Start with primary expression
+        Expr expr = term(); // Start with term expression
 
         // Parse left-associative concatenation chain
         while (match(TokenType.AMPERSAND)) {
             Token operator = previous(); // The & operator token
-            Expr right = primaryExpr();  // Right operand
+            Expr right = term();  // Right operand
             expr = new Expr.Binary(expr, operator, right); // Build left-associative tree
         }
 
@@ -256,28 +597,123 @@ public class Parser {
     }
 
     /**
-     * Parses primary expressions (lowest precedence - literals and variables)
+     * Parses term expressions (addition/subtraction)
      * 
-     * Grammar: STRING | NUMBER | CHAR | "$" | IDENTIFIER
+     * Grammar: factor (("+" | "-") factor)*
+     * 
+     * @return Binary expression for addition/subtraction or lower-precedence expression
+     */
+    private Expr term() {
+        Expr expr = factor();
+
+        while (match(TokenType.PLUS) || match(TokenType.MINUS)) {
+            Token operator = previous();
+            Expr right = factor();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses factor expressions (multiplication/division/modulo)
+     * 
+     * Grammar: unary (("*" | "/" | "%") unary)*
+     * 
+     * @return Binary expression for multiplication/division/modulo or lower-precedence expression
+     */
+    private Expr factor() {
+        Expr expr = unary();
+
+        while (match(TokenType.STAR) || match(TokenType.SLASH) || match(TokenType.PERCENT)) {
+            Token operator = previous();
+            Expr right = unary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+
+        return expr;
+    }
+
+    /**
+     * Parses unary expressions (prefix operators)
+     * 
+     * Grammar: ("+" | "-" | "++" | "--" | "DILI") unary | postfix
+     * 
+     * @return Unary expression or postfix expression
+     */
+    private Expr unary() {
+        if (match(TokenType.PLUS) || match(TokenType.MINUS) || match(TokenType.DILI) 
+            || match(TokenType.PLUS_PLUS) || match(TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            Expr right = unary(); // Right-associative
+            return new Expr.Unary(operator, right);
+        }
+
+        return postfix();
+    }
+
+    /**
+     * Parses postfix expressions (postfix operators)
+     * 
+     * Grammar: primary ("++" | "--")*
+     * 
+     * @return Postfix expression or primary expression
+     */
+    private Expr postfix() {
+        Expr expr = primary();
+        
+        while (match(TokenType.PLUS_PLUS) || match(TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            expr = new Expr.Postfix(expr, operator);
+        }
+        
+        return expr;
+    }
+
+    /**
+     * Parses primary expressions (lowest precedence - literals, variables, and grouping)
+     * 
+     * Grammar: STRING | NUMBER | CHAR | "$" | "(" expression ")" | IDENTIFIER
      * 
      * Primary expressions are the basic building blocks:
      * - String literals: "Hello World"
      * - Number literals: 42, 3.14
      * - Character literals: 'a'
      * - Dollar sign: $ (represents newline)
+     * - Parenthesized expressions: (a + b)
      * - Variable references: x, variable_name
      * 
-     * @return Literal or Variable expression
+     * @return Literal, Variable, or Grouping expression
      * @throws ParseError if no valid primary expression found
      */
-    private Expr primaryExpr() {
+    private Expr primary() {
         if (match(TokenType.STRING))     return new Expr.Literal(previous().literal);
         if (match(TokenType.NUMBER))     return new Expr.Literal(previous().literal);
         if (match(TokenType.CHAR))       return new Expr.Literal(previous().literal);
         if (match(TokenType.DOLLAR))     return new Expr.Literal("\n"); // $ becomes newline
-        if (match(TokenType.IDENTIFIER)) return new Expr.Variable(previous().lexeme);
         
-        throw error(peek(), "Expect string/number/char literal, $, or identifier.");
+        // Parenthesized expressions
+        if (match(TokenType.LEFT_PAREN)) {
+            Expr expr = assignment(); // Allow full expressions inside parens
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+            return new Expr.Grouping(expr);
+        }
+        
+        if (match(TokenType.IDENTIFIER)) {
+            Token identToken = previous();
+            return new Expr.Variable(identToken, identToken.lexeme);
+        }
+        
+        throw error(peek(), "Expect expression.");
+    }
+
+    /**
+     * Helper to peek ahead n tokens
+     */
+    private Token peekAhead(int n) {
+        int idx = current + n;
+        if (idx >= tokens.size()) return null;
+        return tokens.get(idx);
     }
 
     // ========================================================================================
@@ -418,7 +854,7 @@ public class Parser {
      */
     ParseError error(Token token, String message) {
         ErrorReporter.error(token.line, token.col, message);
-        return new ParseError();
+        return new ParseError(message, token);
     }
 
     /**
@@ -427,5 +863,13 @@ public class Parser {
      * Extends RuntimeException to allow throwing without explicit declaration
      * Used for panic-mode error recovery in recursive descent parsing
      */
-    static class ParseError extends RuntimeException {}
+    static class ParseError extends RuntimeException {
+        public ParseError() {
+            super();
+        }
+        
+        public ParseError(String message, Token token) {
+            super("[line " + token.line + " col " + token.col + "] " + message);
+        }
+    }
 }

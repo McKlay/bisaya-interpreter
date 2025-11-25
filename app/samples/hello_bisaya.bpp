@@ -1,6 +1,38 @@
 SUGOD
-	MUGNA LETRA a = 'a'
-	MUGNA LETRA b = 'b'
-	MUGNA LETRA c = 'c'
-	IPAKITA: a & b & c
+    MUGNA NUMERO a
+    MUGNA LETRA e = 'E'
+    MUGNA LETRA o = 'O'
+    MUGNA LETRA p = 'P'
+    MUGNA LETRA n = 'N'
+    MUGNA LETRA z = 'Z'
+    MUGNA TINUOD flag = "OO"
+ 
+    DAWAT: a
+ 
+    KUNG (a > 0)
+    PUNDOK{
+        KUNG (a % 2 == 0)
+        PUNDOK{
+            IPAKITA: p & e
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: p & o
+        }
+    }
+    KUNG DILI (a < 0)
+    PUNDOK{
+        KUNG (a % 2 == 0)
+        PUNDOK{
+            IPAKITA: n & e
+        }
+        KUNG WALA
+        PUNDOK{
+            IPAKITA: n & o
+        }
+    }
+    KUNG WALA
+    PUNDOK{
+        IPAKITA: z
+    }
 KATAPUSAN

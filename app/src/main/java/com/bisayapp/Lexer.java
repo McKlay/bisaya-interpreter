@@ -35,6 +35,11 @@ public class Lexer {
     KEYWORDS.put("UG", TokenType.UG);             // AND
     KEYWORDS.put("O", TokenType.O);               // OR
     KEYWORDS.put("PUNDOK", TokenType.PUNDOK);     // GROUP/BLOCK
+    
+    // Loop keywords
+    KEYWORDS.put("ALANG", TokenType.ALANG);       // FOR
+    KEYWORDS.put("SA", TokenType.SA);             // (part of FOR loop)
+    KEYWORDS.put("SAMTANG", TokenType.SAMTANG);   // WHILE
   }
 
   /**
@@ -116,11 +121,8 @@ public class Lexer {
       case ';' -> add(TokenType.SEMICOLON);
       
       // Arithmetic operators
-      case '+' -> add(TokenType.PLUS);
-      case '-' -> {
-        // Handle line comments (--) or minus operator
-        if (match('-')) lineComment(); else add(TokenType.MINUS);
-      }
+      case '+' -> add(match('+') ? TokenType.PLUS_PLUS : TokenType.PLUS);
+      case '-' -> add(match('-') ? TokenType.MINUS_MINUS : TokenType.MINUS);
       case '*' -> add(TokenType.STAR);
       case '/' -> add(TokenType.SLASH);
       case '%' -> add(TokenType.PERCENT);
@@ -128,6 +130,15 @@ public class Lexer {
       // Special symbols
       case '&' -> add(TokenType.AMPERSAND);
       case '$' -> add(TokenType.DOLLAR);
+      
+      // Comments - @@ to end of line (both inline and start-of-line)
+      case '@' -> {
+        if (match('@')) {
+          lineComment(); // Consume comment to end of line
+        } else {
+          ErrorReporter.error(line, col, "Unexpected character: @");
+        }
+      }
       
       // Comparison operators - supports lookahead for multi-character operators
       case '!' -> add(match('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
@@ -231,12 +242,13 @@ public class Lexer {
   /**
    * COMMENT PROCESSOR - Consume line comment until newline
    * 
-   * Handles '--' style comments by consuming all characters until end of line.
+   * Handles '@@' style comments by consuming all characters until end of line.
    * Does not generate any tokens (comments are ignored in Bisaya++).
+   * Comments can appear both at the start of a line or inline after code.
    * 
    * Side effects: Advances current position to end of line
    * 
-   * Usage: Called when scanToken() encounters '--' sequence
+   * Usage: Called when scanToken() encounters '@@' sequence
    */
   private void lineComment() { while (!isAtEnd() && peek() != '\n') advance(); }
 
@@ -293,13 +305,12 @@ public class Lexer {
     advance(); // consume the ']'
     
     String code = sb.toString();
-    // TODO: Fixed - Only allow specific escape sequences as per specification
     String escaped;
     switch (code) {
       case "&" -> escaped = "&";      // literal ampersand
       case "[" -> escaped = "[";      // literal left bracket  
       case "]" -> escaped = "]";      // literal right bracket
-      case "" -> escaped = "";        // empty escape code for []
+      case "" -> escaped = "";        // empty string
       default -> {
         // For Increment 1, only [[, ]], and [&] are allowed per specification
         ErrorReporter.error(line, col, "Invalid escape sequence: [" + code + "]. Only [[, ]], and [&] are supported.");
@@ -366,9 +377,8 @@ public class Lexer {
    * - Calls ErrorReporter for malformed character literals
    */
   private void character() {
-    // TODO: Fixed - Better detection of unclosed character literals
     if (isAtEnd() || peek() == '\n') {
-      ErrorReporter.error(line, col, "Unterminated character literal - missing closing quote.");
+      ErrorReporter.error(line, col, "Unterminated character literal.");
       return;
     }
     char value = advance();
@@ -414,6 +424,20 @@ public class Lexer {
     // Optional fractional part
     if (peek() == '.' && isDigit(peekNext())) {
       advance(); // consume the '.'
+      while (isDigit(peek())) advance();
+    }
+    // Optional scientific notation (e.g., 1.5E10, 2e-5)
+    if (peek() == 'E' || peek() == 'e') {
+      advance(); // consume 'E' or 'e'
+      // Optional sign
+      if (peek() == '+' || peek() == '-') {
+        advance();
+      }
+      // Exponent digits (required)
+      if (!isDigit(peek())) {
+        ErrorReporter.error(line, col, "Invalid scientific notation: expected digits after 'E'");
+        return;
+      }
       while (isDigit(peek())) advance();
     }
     String text = src.substring(start, current);

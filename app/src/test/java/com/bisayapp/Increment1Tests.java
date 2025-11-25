@@ -60,12 +60,12 @@ public class Increment1Tests {
     @Test
     void programMarkersAndComments() {
         String src = """
-            -- header comment
+            @@ header comment
             SUGOD
-              -- inside
+              @@ inside
               IPAKITA: "A" & $
               IPAKITA: "B"
-              -- trailer
+              @@ trailer
             KATAPUSAN
             """;
         assertEquals("A\nB", runSource(src));
@@ -73,14 +73,15 @@ public class Increment1Tests {
 
     @Test
     void commentsCanAppearAnywhere() {
+        // Updated: comments can be inline or at start of line
         String src = """
-            -- before SUGOD
-            SUGOD -- after SUGOD
-              MUGNA NUMERO x=1 -- after statement
-              -- standalone comment
-              IPAKITA: x -- after IPAKITA
-            KATAPUSAN -- after KATAPUSAN
-            -- after program
+            @@ before SUGOD
+            SUGOD
+              MUGNA NUMERO x=1
+              @@ standalone comment
+              IPAKITA: x
+            KATAPUSAN
+            @@ after program
             """;
         assertEquals("1", runSource(src));
     }
@@ -88,9 +89,9 @@ public class Increment1Tests {
     @Test
     void emptyProgramWithOnlyComments() {
         String src = """
-            -- only comments
+            @@ only comments
             SUGOD
-              -- nothing here
+              @@ nothing here
             KATAPUSAN
             """;
         assertEquals("", runSource(src));
@@ -112,7 +113,7 @@ public class Increment1Tests {
     void printStringLiteralsOnly() {
         String src = """
             SUGOD
-              IPAKITA: "Hello"
+              IPAKITA: "Hello" & $
               IPAKITA: "World"
             KATAPUSAN
             """;
@@ -123,7 +124,7 @@ public class Increment1Tests {
     void printNumbersOnly() {
         String src = """
             SUGOD
-              IPAKITA: 42
+              IPAKITA: 42 & $
               IPAKITA: 100
             KATAPUSAN
             """;
@@ -247,7 +248,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA NUMERO x=10
-              IPAKITA: x
+              IPAKITA: x & $
               x=20
               IPAKITA: x
             KATAPUSAN
@@ -260,7 +261,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA LETRA ch='A'
-              IPAKITA: ch
+              IPAKITA: ch & $
               ch='B'
               IPAKITA: ch
             KATAPUSAN
@@ -273,7 +274,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA TINUOD flag="OO"
-              IPAKITA: flag
+              IPAKITA: flag & $
               flag="DILI"
               IPAKITA: flag
             KATAPUSAN
@@ -287,7 +288,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
             IPAKITA: [[] & $
-            IPAKITA: []]
+            IPAKITA: []] & $
             IPAKITA: [&]
             KATAPUSAN
             """;
@@ -421,7 +422,7 @@ public class Increment1Tests {
         String src = """
             SUGOD
               MUGNA TINUOD t="DILI"
-              IPAKITA: t
+              IPAKITA: t & $
               t="OO"
               IPAKITA: t
             KATAPUSAN

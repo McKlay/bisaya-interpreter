@@ -491,7 +491,7 @@ IncrementNTests.java    // End-to-end feature validation
 ```java
 @Test void reserved_words_cannot_be_variable_names()
 @Test void chained_assignment_evaluates_right_to_left()
-@Test void ipakita_adds_newline_if_not_present()
+@Test void ipakita_uses_dollar_sign_for_explicit_newlines()
 ```
 
 **3. Clear Test Data:**

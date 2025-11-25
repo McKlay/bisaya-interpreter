@@ -19,7 +19,7 @@ public class LexerTest {
 
     @Test
     void comments_are_ignored_until_eol() {
-        var toks = lex("SUGOD\n-- comment here\nKATAPUSAN\n");
+        var toks = lex("SUGOD\n@@ comment here\nKATAPUSAN\n");
         assertTrue(toks.stream().anyMatch(t -> t.type == TokenType.SUGOD));
         assertTrue(toks.stream().anyMatch(t -> t.type == TokenType.KATAPUSAN));
         // No token produced for comment body

@@ -20,7 +20,7 @@ public class InterpreterPrintTest {
     @Test
     void spec_sample_runs_and_matches() {
         String src = """
-        -- this is a sample program in Bisaya++
+        @@ this is a sample program in Bisaya++
         SUGOD
         MUGNA NUMERO x, y, z=5
         MUGNA LETRA a_1='n'
@@ -28,7 +28,7 @@ public class InterpreterPrintTest {
 
         x=y=4
         a_1='c'
-        -- this is a comment
+        @@ this is a comment
 
         IPAKITA: x & t & z & $ & a_1 & [&] & "last"
         KATAPUSAN

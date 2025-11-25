@@ -1,0 +1,91 @@
+/* Bisaya++ Syntax Highlighting Stylesheet */
+
+/* Control Flow Keywords - Bold Blue (KUNG, SAMTANG, ALANG, PUNDOK) */
+.keyword {
+    -fx-fill: #0000FF;
+    -fx-font-weight: bold;
+}
+
+/* Built-in Functions - Purple (IPAKITA, DAWAT, MUGNA) */
+.builtin {
+    -fx-fill: #8B008B;
+    -fx-font-weight: bold;
+}
+
+/* Data Type Keywords - Teal (NUMERO, LETRA, TINUOD, TIPIK) */
+.datatype {
+    -fx-fill: #008080;
+    -fx-font-weight: bold;
+}
+
+/* Program Structure - Dark Blue (SUGOD, KATAPUSAN) */
+.structure {
+    -fx-fill: #000080;
+    -fx-font-weight: bold;
+}
+
+/* Strings - Dark Green (better contrast) */
+.string {
+    -fx-fill: #006400;
+}
+
+/* Numbers - Brown (distinct from operators) */
+.number {
+    -fx-fill: #A52A2A;
+}
+
+/* Comments - VS Code style green (better readability) */
+.comment {
+    -fx-fill: #6A9955;
+    -fx-font-style: italic;
+}
+
+/* Operators - Orange (now distinct from numbers) */
+.operator {
+    -fx-fill: #FF8C00;
+}
+
+/* Current line highlight - More visible blue background */
+.current-line {
+    -fx-background-color: #CCE5FF;
+}
+
+/* Clickable error line in output */
+.error-line {
+    -fx-fill: #CC0000;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+/* Output text color styles */
+.output-normal {
+    -fx-fill: #00ff00;
+}
+
+.output-error {
+    -fx-fill: #ff4444;
+}
+
+.output-warning {
+    -fx-fill: #ffaa00;
+}
+
+/* Line numbers styling (from RichTextFX) */
+.lineno {
+    -fx-background-color: #f0f0f0;
+    -fx-text-fill: #666666;
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 11pt;
+}
+
+/* CodeArea - Add border on left side for line number separator */
+.code-area {
+    -fx-border-color: transparent #d0d0d0 transparent transparent;
+    -fx-border-width: 0 0 0 1;
+}
+
+/* Paragraph graphic (line number area) border */
+.code-area .paragraph-graphic {
+    -fx-border-color: transparent #d0d0d0 transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}

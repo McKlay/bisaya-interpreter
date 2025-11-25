@@ -1,15 +1,32 @@
 package com.bisayapp;
 
 import java.io.PrintStream;
-
+import java.io.InputStream;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private final Environment env = new Environment();
-    private final PrintStream out;
+    private final IOHandler ioHandler;
 
+    /**
+     * Creates interpreter with custom IOHandler
+     */
+    public Interpreter(IOHandler ioHandler) {
+        this.ioHandler = ioHandler;
+    }
+
+    /**
+     * Creates interpreter with console I/O (backward compatibility)
+     */
     public Interpreter(PrintStream out) {
-        this.out = out;
+        this(new ConsoleIOHandler(out, System.err, System.in));
+    }
+
+    /**
+     * Creates interpreter with custom streams (backward compatibility)
+     */
+    public Interpreter(PrintStream out, InputStream in) {
+        this(new ConsoleIOHandler(out, System.err, in));
     }
 
     public void interpret(List<Stmt> program) {
@@ -24,15 +41,102 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitPrint(Stmt.Print s) {
         StringBuilder sb = new StringBuilder();
         for (Expr e : s.parts) sb.append(stringify(eval(e)));
-        String output = sb.toString();
+        // No automatic newline - user must explicitly use $ for newlines
+        ioHandler.writeOutput(sb.toString());
+        return null;
+    }
+
+    @Override
+    public Void visitInput(Stmt.Input s) {
+        // Build prompt message
+        String prompt = "Enter values for: " + String.join(", ", s.varNames);
         
-        // Add newline if the output doesn't already end with one
-        if (!output.endsWith("\n")) {
-            output += "\n";
+        String line;
+        try {
+            if (!ioHandler.hasInput()) {
+                throw runtimeError(s.dawatToken, "DAWAT: No input available (empty input stream)");
+            }
+            line = ioHandler.readInput(prompt);
+        } catch (RuntimeException e) {
+            // Handle cancellation or input errors
+            throw runtimeError(s.dawatToken, "DAWAT: " + e.getMessage());
         }
         
-        out.print(output);
+        String[] values = line.split(",");
+        
+        if (values.length != s.varNames.size()) {
+            throw runtimeError(s.dawatToken, "DAWAT expects " + s.varNames.size() + 
+                " value(s), but got " + values.length);
+        }
+        
+        for (int i = 0; i < s.varNames.size(); i++) {
+            String varName = s.varNames.get(i);
+            String inputValue = values[i].trim();
+            
+            // Check if variable exists - MUST check before getType()
+            if (!env.isDeclared(varName)) {
+                throw runtimeError(s.dawatToken, "Undefined variable '" + varName + 
+                    "'. Variables must be declared with MUGNA before using in DAWAT.");
+            }
+            
+            // Get the variable's type (safe now, we know it exists)
+            TokenType type = env.getType(varName);
+            
+            // Validate we have a non-null type
+            if (type == null) {
+                throw runtimeError(s.dawatToken, "Internal error: Variable '" + varName + 
+                    "' exists but has no type information.");
+            }
+            
+            // Parse and validate the input value
+            Object value = parseInputValue(inputValue, type, varName, s.dawatToken);
+            env.assign(varName, value);
+        }
+        
         return null;
+    }
+
+    private Object parseInputValue(String input, TokenType type, String varName, Token dawatToken) {
+        // Check for empty input first
+        if (input.isEmpty()) {
+            String msg = "DAWAT: empty input for variable '" + varName + "' of type " + type;
+            if (type == TokenType.LETRA) {
+                msg = "DAWAT: LETRA requires exactly one character, but got empty input for variable '" + varName + "'";
+            }
+            throw runtimeError(dawatToken, msg);
+        }
+        
+        try {
+            switch (type) {
+                case NUMERO -> {
+                    // Parse as integer
+                    if (input.contains(".")) {
+                        throw runtimeError(dawatToken, "DAWAT: NUMERO cannot have decimal values. Got: " + input);
+                    }
+                    return Integer.valueOf(input);
+                }
+                case TIPIK -> {
+                    // Parse as float (better precision for decimal display)
+                    return Float.valueOf(input);
+                }
+                case LETRA -> {
+                    // Must be single character
+                    if (input.length() != 1) {
+                        throw runtimeError(dawatToken, "DAWAT: LETRA must be exactly one character. Got: '" + input + "' (length: " + input.length() + ")");
+                    }
+                    return input.charAt(0);
+                }
+                case TINUOD -> {
+                    // Must be "OO" or "DILI"
+                    if (input.equals("OO")) return true;
+                    if (input.equals("DILI")) return false;
+                    throw runtimeError(dawatToken, "DAWAT: TINUOD must be 'OO' or 'DILI'. Got: " + input);
+                }
+                default -> throw runtimeError(dawatToken, "DAWAT: Unknown type: " + type);
+            }
+        } catch (NumberFormatException e) {
+            throw runtimeError(dawatToken, "DAWAT: Invalid " + type + " value: '" + input + "'");
+        }
     }
 
     @Override
@@ -50,13 +154,66 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return null;
     }
 
+    @Override
+    public Void visitIf(Stmt.If s) {
+        Object conditionValue = eval(s.condition);
+        
+        if (isTruthy(conditionValue)) {
+            execute(s.thenBranch);
+        } else if (s.elseBranch != null) {
+            execute(s.elseBranch);
+        }
+        
+        return null;
+    }
+
+    @Override
+    public Void visitBlock(Stmt.Block s) {
+        for (Stmt stmt : s.statements) {
+            execute(stmt);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitFor(Stmt.For s) {
+        // Execute initializer once
+        if (s.initializer != null) {
+            execute(s.initializer);
+        }
+        
+        // Loop while condition is true
+        while (isTruthy(eval(s.condition))) {
+            // Execute body
+            execute(s.body);
+            
+            // Execute update
+            if (s.update != null) {
+                execute(s.update);
+            }
+        }
+        
+        return null;
+    }
+
+    @Override
+    public Void visitWhile(Stmt.While s) {
+        // Loop while condition is true
+        while (isTruthy(eval(s.condition))) {
+            // Execute body
+            execute(s.body);
+        }
+        
+        return null;
+    }
+
     // --- Expr ---
     @Override
     public Object visitLiteral(Expr.Literal e) { return e.value; }
 
     @Override
     public Object visitVariable(Expr.Variable e) {
-        Object v = env.get(e.name);
+        Object v = env.get(e.name, e.token);
         TokenType t = env.getType(e.name);
         if (t == TokenType.TINUOD && v instanceof Boolean b) {
             return b ? "OO" : "DILI";
@@ -67,7 +224,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssign(Expr.Assign e) {
         Object v = eval(e.value);
-        // TODO: Fixed - Require variables to be declared before assignment
+        // Require variables to be declared before assignment
         if (!env.isDeclared(e.name)) {
             throw new RuntimeException("Undefined variable '" + e.name + "'. Variables must be declared with MUGNA before assignment.");
         }
@@ -78,21 +235,341 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitBinary(Expr.Binary e) {
         Object left = eval(e.left);
-        Object right = eval(e.right);
         
-        if (e.operator.type == TokenType.AMPERSAND) {
-            return stringify(left) + stringify(right);
+        // Handle short-circuit operators FIRST, before evaluating right operand
+        // This prevents unnecessary evaluation and potential runtime errors
+        if (e.operator.type == TokenType.UG) { // AND operator
+            // Both operands must be boolean
+            boolean leftBool = requireBoolean(left, e.operator, "UG operator (AND)");
+            // If left is false, result is always false - don't evaluate right
+            if (!leftBool) return false;
+            // Only evaluate right if left is true
+            Object right = eval(e.right);
+            boolean rightBool = requireBoolean(right, e.operator, "UG operator (AND)");
+            return rightBool;
         }
         
-        throw new RuntimeException("Unsupported binary operator: " + e.operator.lexeme);
+        if (e.operator.type == TokenType.O) { // OR operator
+            // Both operands must be boolean
+            boolean leftBool = requireBoolean(left, e.operator, "O operator (OR)");
+            // If left is true, result is always true - don't evaluate right
+            if (leftBool) return true;
+            // Only evaluate right if left is false
+            Object right = eval(e.right);
+            boolean rightBool = requireBoolean(right, e.operator, "O operator (OR)");
+            return rightBool;
+        }
+        
+        // For all other operators, evaluate right operand normally
+        Object right = eval(e.right);
+        
+        switch (e.operator.type) {
+            case AMPERSAND:
+                return stringify(left) + stringify(right);
+            
+            // Arithmetic operators
+            case PLUS:
+                return addNumbers(left, right, e.operator);
+            case MINUS:
+                return subtractNumbers(left, right, e.operator);
+            case STAR:
+                return multiplyNumbers(left, right, e.operator);
+            case SLASH:
+                return divideNumbers(left, right, e.operator);
+            case PERCENT:
+                return moduloNumbers(left, right, e.operator);
+            
+            // Comparison operators
+            case GREATER:
+                return compareNumbers(left, right, e.operator) > 0;
+            case GREATER_EQUAL:
+                return compareNumbers(left, right, e.operator) >= 0;
+            case LESS:
+                return compareNumbers(left, right, e.operator) < 0;
+            case LESS_EQUAL:
+                return compareNumbers(left, right, e.operator) <= 0;
+            case EQUAL_EQUAL:
+                return isEqual(left, right);
+            case LT_GT:
+                return !isEqual(left, right);
+            
+            // Note: UG (AND) and O (OR) are handled above with short-circuit evaluation
+            
+            default:
+                throw runtimeError(e.operator, "Unsupported binary operator: " + e.operator.lexeme);
+        }
     }
 
-    // --- helpers ---
+    @Override
+    public Object visitUnary(Expr.Unary e) {
+        Object operand = eval(e.operand);
+        
+        switch (e.operator.type) {
+            case MINUS:
+                // Negative operator
+                Number num = requireNumber(operand, e.operator);
+                if (num instanceof Integer) {
+                    return -num.intValue();
+                }
+                return -num.floatValue();
+            
+            case MINUS_MINUS:
+                // Decrement operator
+                if (e.operand instanceof Expr.Variable var) {
+                    Number n = requireNumber(operand, e.operator);
+                    Object result;
+                    if (n instanceof Integer) {
+                        result = n.intValue() - 1;
+                    } else {
+                        result = n.floatValue() - 1.0f;
+                    }
+                    env.assign(var.name, result);
+                    return result;
+                }
+                throw runtimeError(e.operator, "Decrement operator requires a variable.");
+            
+            case PLUS:
+                // Positive operator (unary +)
+                return requireNumber(operand, e.operator);
+            
+            case PLUS_PLUS:
+                // Increment operator
+                if (e.operand instanceof Expr.Variable var) {
+                    Number n = requireNumber(operand, e.operator);
+                    Object result;
+                    if (n instanceof Integer) {
+                        result = n.intValue() + 1;
+                    } else {
+                        result = n.floatValue() + 1.0f;
+                    }
+                    env.assign(var.name, result);
+                    return result;
+                }
+                throw runtimeError(e.operator, "Increment operator requires a variable.");
+            
+            case DILI: // NOT
+                boolean bool = requireBoolean(operand, e.operator, "DILI operator (NOT)");
+                return !bool;
+            
+            default:
+                throw runtimeError(e.operator, "Unsupported unary operator: " + e.operator.lexeme);
+        }
+    }
+
+    @Override
+    public Object visitPostfix(Expr.Postfix e) {
+        Object operand = eval(e.operand);
+        
+        switch (e.operator.type) {
+            case PLUS_PLUS:
+                // Postfix increment: return old value, then increment
+                if (e.operand instanceof Expr.Variable var) {
+                    Number n = requireNumber(operand, e.operator);
+                    Object oldValue = operand;
+                    Object newValue;
+                    if (n instanceof Integer) {
+                        newValue = n.intValue() + 1;
+                    } else {
+                        newValue = n.floatValue() + 1.0f;
+                    }
+                    env.assign(var.name, newValue);
+                    return oldValue; // Return old value for postfix
+                }
+                throw runtimeError(e.operator, "Postfix increment operator requires a variable.");
+            
+            case MINUS_MINUS:
+                // Postfix decrement: return old value, then decrement
+                if (e.operand instanceof Expr.Variable var) {
+                    Number n = requireNumber(operand, e.operator);
+                    Object oldValue = operand;
+                    Object newValue;
+                    if (n instanceof Integer) {
+                        newValue = n.intValue() - 1;
+                    } else {
+                        newValue = n.floatValue() - 1.0f;
+                    }
+                    env.assign(var.name, newValue);
+                    return oldValue; // Return old value for postfix
+                }
+                throw runtimeError(e.operator, "Postfix decrement operator requires a variable.");
+            
+            default:
+                throw runtimeError(e.operator, "Unsupported postfix operator: " + e.operator.lexeme);
+        }
+    }
+
+    @Override
+    public Object visitGrouping(Expr.Grouping e) {
+        return eval(e.expression);
+    }
+
+    // --- Helper methods ---
+    
+    /**
+     * Creates a runtime error with line and column information.
+     * This provides professional error messages that help users locate issues.
+     */
+    private RuntimeException runtimeError(Token token, String message) {
+        return new RuntimeException("[line " + token.line + " col " + token.col + "] " + message);
+    }
+    
+    /**
+     * Ensures a value is a number, throwing an error with location if not.
+     */
+    private Number requireNumber(Object value, Token operator) {
+        if (value instanceof Number n) return n;
+        throw runtimeError(operator, "type error: operand must be a number for operator '" + operator.lexeme + "'. Got: " + getTypeName(value));
+    }
+    
+    /**
+     * Ensures a value is a boolean, throwing an error with location if not.
+     */
+    private boolean requireBoolean(Object value, Token token, String context) {
+        if (value instanceof Boolean b) return b;
+        if (value instanceof String s && (s.equals("OO") || s.equals("DILI"))) {
+            return s.equals("OO");
+        }
+        throw runtimeError(token, context + " requires a boolean value (OO or DILI). Got: " + getTypeName(value));
+    }
+    
+    /**
+     * Returns the type name of a value for error messages.
+     */
+    private String getTypeName(Object value) {
+        if (value == null) return "null";
+        if (value instanceof Integer) return "NUMERO";
+        if (value instanceof Float) return "TIPIK";
+        if (value instanceof Character) return "LETRA";
+        if (value instanceof Boolean) return "TINUOD";
+        if (value instanceof String) return "text";
+        return value.getClass().getSimpleName();
+    }
+
+    private Object addNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        if (l instanceof Integer && r instanceof Integer) {
+            return l.intValue() + r.intValue();
+        }
+        return l.floatValue() + r.floatValue();
+    }
+
+    private Object subtractNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        if (l instanceof Integer && r instanceof Integer) {
+            return l.intValue() - r.intValue();
+        }
+        return l.floatValue() - r.floatValue();
+    }
+
+    private Object multiplyNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        if (l instanceof Integer && r instanceof Integer) {
+            return l.intValue() * r.intValue();
+        }
+        return l.floatValue() * r.floatValue();
+    }
+
+    private Object divideNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        if (r.floatValue() == 0.0f) {
+            throw runtimeError(operator, "Division by zero.");
+        }
+        
+        if (l instanceof Integer && r instanceof Integer) {
+            return l.intValue() / r.intValue();
+        }
+        return l.floatValue() / r.floatValue();
+    }
+
+    private Object moduloNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        if (r.floatValue() == 0.0f) {
+            throw runtimeError(operator, "Modulo by zero.");
+        }
+        
+        if (l instanceof Integer && r instanceof Integer) {
+            return l.intValue() % r.intValue();
+        }
+        return l.floatValue() % r.floatValue();
+    }
+
+    private int compareNumbers(Object left, Object right, Token operator) {
+        Number l = requireNumber(left, operator);
+        Number r = requireNumber(right, operator);
+        
+        return Float.compare(l.floatValue(), r.floatValue());
+    }
+
+    private boolean isEqual(Object left, Object right) {
+        if (left == null && right == null) return true;
+        if (left == null) return false;
+        
+        // Handle numeric comparisons (Integer vs Float, etc.)
+        if (left instanceof Number && right instanceof Number) {
+            Number l = (Number) left;
+            Number r = (Number) right;
+            float leftVal = l.floatValue();
+            float rightVal = r.floatValue();
+            
+            // Handle special case: -0.0 should equal 0.0 in Bisaya++
+            // This is important for modulo operations with negative numbers
+            // In Java, Float.compare(-0.0f, 0.0f) returns -1, but for our language,
+            // we want -0.0 == 0.0 to be true
+            if (leftVal == 0.0f && rightVal == 0.0f) {
+                return true;
+            }
+            
+            return Float.compare(leftVal, rightVal) == 0;
+        }
+        
+        return left.equals(right);
+    }
+
+    private boolean isTruthy(Object value) {
+        if (value == null) {
+            throw new RuntimeException("Condition cannot be null");
+        }
+        if (value instanceof Boolean b) {
+            return b;
+        }
+        if (value instanceof String s) {
+            if (s.equals("OO")) return true;
+            if (s.equals("DILI")) return false;
+            throw new RuntimeException("String '" + s + "' cannot be used as boolean condition. Use 'OO' or 'DILI'");
+        }
+        if (value instanceof Number) {
+            throw new RuntimeException("NUMERO/TIPIK value cannot be used as boolean condition. Use comparison operators (>, <, ==, etc.)");
+        }
+        if (value instanceof Character) {
+            throw new RuntimeException("LETRA value cannot be used as boolean condition");
+        }
+        throw new RuntimeException("Invalid type for boolean condition: " + value.getClass().getSimpleName());
+    }
+
     private String stringify(Object v) {
         if (v == null) return "null";
         if (v instanceof Double d) {
+            // Display double without unnecessary decimals (e.g., 4.0 -> 4)
             if (d == d.intValue()) return String.valueOf(d.intValue());
             return v.toString();
+        }
+        if (v instanceof Float f) {
+            // Display float without unnecessary decimals (e.g., 4.0 -> 4)
+            if (f == f.intValue()) return String.valueOf(f.intValue());
+            return v.toString();
+        }
+        if (v instanceof Boolean b) {
+            return b ? "OO" : "DILI";
         }
         return v.toString();
     }

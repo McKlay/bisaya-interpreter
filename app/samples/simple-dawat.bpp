@@ -1,0 +1,9 @@
+@@ Simple DAWAT test
+SUGOD
+    MUGNA NUMERO age
+    
+    IPAKITA: "What is your age? "
+    DAWAT: age
+    
+    IPAKITA: "You are " & age & " years old!" & $
+KATAPUSAN

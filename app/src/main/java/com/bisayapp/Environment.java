@@ -7,10 +7,11 @@ public class Environment {
     private final Map<String, Object> values = new HashMap<>();
     private final Map<String, TokenType> types = new HashMap<>();
 
-    public void define(String name, Object value) { values.put(name, value); }
-
-    // declare with type
     public void declare(String name, TokenType type, Object value) {
+        // Check if variable is already declared
+        if (types.containsKey(name)) {
+            throw new RuntimeException("Variable '" + name + "' is already declared.");
+        }
         types.put(name, type);
         values.put(name, coerce(type, value));
     }
@@ -25,24 +26,36 @@ public class Environment {
         values.put(name, t == null ? value : coerce(t, value));
     }
 
-    public Object get(String name) {
-        if (!values.containsKey(name)) throw new RuntimeException("Undefined variable '" + name + "'");
+    public Object get(String name, Token token) {
+        if (!values.containsKey(name)) {
+            throw new RuntimeException("[line " + token.line + " col " + token.col + 
+                "] Undefined variable '" + name + "'. Variables must be declared with MUGNA before use.");
+        }
         return values.get(name);
     }
 
-    public boolean isDefined(String name) { return values.containsKey(name); }
-
-    // simple coercion for Increment 1
     private Object coerce(TokenType t, Object v) {
         if (v == null) return null;
         switch (t) {
             case NUMERO -> {
-                // TODO: Fixed - NUMERO should reject decimal values
+                // NUMERO should reject decimal values
                 if (v instanceof Double d) {
-                    if (d != d.intValue()) {
+                    // Check if the double has a fractional part
+                    double fractionalPart = d - Math.floor(d);
+                    if (fractionalPart != 0.0) {
                         throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + d);
                     }
+                    // Allow integer overflow/underflow - Java will wrap automatically
                     return Integer.valueOf(d.intValue());
+                }
+                if (v instanceof Float f) {
+                    // Check if the float has a fractional part
+                    float fractionalPart = f - (float)Math.floor(f);
+                    if (fractionalPart != 0.0f) {
+                        throw new RuntimeException("Type error: NUMERO cannot have decimal values. Use TIPIK for decimal numbers. Got: " + f);
+                    }
+                    // Allow integer overflow/underflow - Java will wrap automatically
+                    return Integer.valueOf(f.intValue());
                 }
                 if (v instanceof Number n) return Integer.valueOf(n.intValue());
                 if (v instanceof String s && s.matches("-?\\d+")) return Integer.valueOf(s);
@@ -51,12 +64,11 @@ public class Environment {
                 }
             }
             case TIPIK -> {
-                if (v instanceof Number n) return Double.valueOf(n.doubleValue());
-                if (v instanceof String s && s.matches("-?\\d+(\\.\\d+)?")) return Double.valueOf(s);
+                if (v instanceof Number n) return Float.valueOf(n.floatValue());
+                if (v instanceof String s && s.matches("-?\\d+(\\.\\d+)?")) return Float.valueOf(s);
             }
             case LETRA -> {
                 if (v instanceof Character c) return c;
-                // TODO: Fixed - LETRA must be exactly 1 character
                 if (v instanceof String s) {
                     if (s.length() == 0) {
                         throw new RuntimeException("Type error: LETRA cannot be empty - must be exactly one character");

@@ -1,0 +1,12 @@
+@@ Sum calculation using loop
+@@ Calculates sum of numbers from 1 to 100
+SUGOD
+    MUGNA NUMERO i, sum=0
+    
+    ALANG SA (i=1, i<=100, i++)
+    PUNDOK{
+        sum = sum + i
+    }
+    
+    IPAKITA: "Sum of 1 to 100 = " & sum & $
+KATAPUSAN
