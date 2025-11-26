@@ -115,7 +115,6 @@ primary        → NUMBER | STRING | CHAR | "$"
 | 11 | `()` literals identifiers | N/A | Primary |
 concatenation  → primary ( "&" primary )*
 primary        → STRING | NUMBER | CHAR | "$" | IDENTIFIER
-```
 
 ### Terminals
 ```bnf
