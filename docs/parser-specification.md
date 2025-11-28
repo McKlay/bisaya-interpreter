@@ -380,12 +380,147 @@ flowchart TD
 flowchart TD
     A[statement] --> B{Token type?}
     B -->|IPAKITA| C[printStmt]
-    B -->|MUGNA| D[varDecl]
-    B -->|Other| E[exprStmt]
+    B -->|DAWAT| D[inputStmt]
+    B -->|MUGNA| E[varDecl]
+    B -->|KUNG| F[ifStmt]
+    B -->|ALANG| G[forStmt]
+    B -->|SAMTANG| H[whileStmt]
+    B -->|PUNDOK| I[block]
+    B -->|Other| J[exprStmt]
     
-    C --> F[Parse print parts]
-    D --> G[Parse type & vars]
-    E --> H[Parse assignment]
+    C --> K[Parse IPAKITA: expr & expr & ...]
+    D --> L[Parse DAWAT: var, var, ...]
+    E --> M[Parse MUGNA type var=init, ...]
+    F --> N[Parse KUNG condition then else]
+    G --> O[Parse ALANG SA init,cond,update]
+    H --> P[Parse SAMTANG condition]
+    I --> Q[Parse PUNDOK block statements]
+    J --> R[Parse assignment expression]
+```
+
+### Print Statement Parsing (IPAKITA)
+```mermaid
+flowchart TD
+    A[printStmt] --> B[Consume IPAKITA]
+    B --> C[Consume COLON]
+    C --> D[Parse first expression]
+    D --> E{Check AMPERSAND?}
+    E -->|Yes| F[Consume &]
+    F --> G[Parse next expression]
+    G --> E
+    E -->|No| H[Create Print AST node]
+```
+
+### Input Statement Parsing (DAWAT)
+```mermaid
+flowchart TD
+    A[inputStmt] --> B[Consume DAWAT]
+    B --> C[Consume COLON]
+    C --> D[Parse identifier]
+    D --> E[Validate variable declared]
+    E --> F{Check COMMA?}
+    F -->|Yes| G[Consume comma]
+    G --> H[Parse next identifier]
+    H --> I[Validate variable declared]
+    I --> J[Check for duplicates]
+    J --> F
+    F -->|No| K[Create Input AST node]
+```
+
+### Variable Declaration Parsing (MUGNA)
+```mermaid
+flowchart TD
+    A[varDecl] --> B[Consume MUGNA]
+    B --> C[Parse type token]
+    C --> D[Parse identifier]
+    D --> E{Check EQUAL?}
+    E -->|Yes| F[Consume =]
+    F --> G[Parse initializer expression]
+    G --> H[Add to items list]
+    E -->|No| H
+    H --> I{Check COMMA?}
+    I -->|Yes| J[Consume comma]
+    J --> D
+    I -->|No| K[Register variables]
+    K --> L[Create VarDecl AST node]
+```
+
+### Conditional Statement Parsing (KUNG)
+```mermaid
+flowchart TD
+    A[ifStmt] --> B[Consume KUNG]
+    B --> C[Consume LEFT_PAREN]
+    C --> D[Parse condition expression]
+    D --> E[Consume RIGHT_PAREN]
+    E --> F[Consume PUNDOK]
+    F --> G[Consume LEFT_BRACE]
+    G --> H[Parse then block statements]
+    H --> I[Consume RIGHT_BRACE]
+    I --> J{Check KUNG DILI?}
+    J -->|Yes| K[Recursive else-if]
+    J -->|No| L{Check KUNG WALA?}
+    L -->|Yes| M[Parse else block]
+    L -->|No| N[Done]
+    K --> N
+    M --> N
+```
+
+### For Loop Parsing (ALANG SA)
+```mermaid
+flowchart TD
+    A[forStmt] --> B[Consume ALANG SA]
+    B --> C[Consume LEFT_PAREN]
+    C --> D[Parse initializer assignment]
+    D --> E[Consume COMMA]
+    E --> F[Parse condition expression]
+    F --> G[Consume COMMA]
+    G --> H[Parse update assignment]
+    H --> I[Consume RIGHT_PAREN]
+    I --> J[Parse body statement]
+    J --> K[Create For AST node]
+```
+
+### While Loop Parsing (SAMTANG)
+```mermaid
+flowchart TD
+    A[whileStmt] --> B[Consume SAMTANG]
+    B --> C[Consume LEFT_PAREN]
+    C --> D[Parse condition expression]
+    D --> E[Consume RIGHT_PAREN]
+    E --> F[Parse body statement]
+    F --> G[Create While AST node]
+```
+
+### Expression Parsing (Precedence Climbing)
+```mermaid
+flowchart TD
+    A[assignment] --> B{Is IDENTIFIER + EQUAL?}
+    B -->|Yes| C[Parse assignment]
+    C --> D[Recursively parse right side]
+    D --> E[Create Assign AST node]
+    B -->|No| F[Parse logical OR]
+    
+    F --> G[Parse logical AND]
+    G --> H[Parse equality]
+    H --> I[Parse comparison]
+    I --> J[Parse concatenation]
+    J --> K[Parse term +/-]
+    K --> L[Parse factor */%]
+    L --> M[Parse unary]
+    M --> N[Parse postfix]
+    N --> O[Parse primary]
+    
+    O --> P{Token type?}
+    P -->|NUMBER| Q[Literal number]
+    P -->|STRING| R[Literal string]
+    P -->|CHAR| S[Literal character]
+    P -->|DOLLAR| T[Literal newline]
+    P -->|IDENTIFIER| U[Variable reference]
+    P -->|LEFT_PAREN| V[Grouping expression]
+    
+    V --> W[Parse inner assignment]
+    W --> X[Consume RIGHT_PAREN]
+    X --> Y[Create Grouping AST]
 ```
 
 ## Operator Precedence and Associativity
