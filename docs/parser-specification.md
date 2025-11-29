@@ -98,7 +98,7 @@ primary        → NUMBER | STRING | CHAR | "$"
                  | "(" assignment ")" | IDENTIFIER
 ```
 
-### Operator Precedence (Highest to Lowest)
+### Operator Precedence (Lowest to Highest)
 
 | Level | Operators | Associativity | Category |
 |-------|-----------|---------------|----------|
@@ -113,8 +113,13 @@ primary        → NUMBER | STRING | CHAR | "$"
 | 9 | `+` `-` `++` `--` `DILI` | Right | Unary (prefix) |
 | 10 | `++` `--` | Left | Postfix |
 | 11 | `()` literals identifiers | N/A | Primary |
-concatenation  → primary ( "&" primary )*
-primary        → STRING | NUMBER | CHAR | "$" | IDENTIFIER
+
+**Note on Precedence Levels**: 
+- **Lower level number = LOWER precedence** (binds looser, evaluated last)
+- **Higher level number = HIGHER precedence** (binds tighter, evaluated first)
+- Level 1 (Assignment) has the **lowest** precedence
+- Level 11 (Primary) has the **highest** precedence
+- The levels correspond to the BNF grammar hierarchy from top to bottom
 
 ### Terminals
 ```bnf
