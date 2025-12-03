@@ -341,17 +341,17 @@ EditorPanel    OutputPanel    StatusBar    FileManager
 
 ## Component Coupling
 
-### Low Coupling ✅
+### Low Coupling
 - **IDEConfig** → Used by all, depends on none
 - **EditorPanel** → Self-contained UI component
 - **OutputPanel** → Self-contained UI component
 - **StatusBar** → Self-contained UI component
 
-### Medium Coupling ⚠️
+### Medium Coupling
 - **FileManager** → Depends on Stage (for dialogs)
 - **Builders** → Depend on IDEController
 
-### High Coupling (Coordinator) 🎯
+### High Coupling (Coordinator)
 - **IDEController** → Central coordinator (by design)
 - **BisayaIDE** → Main assembler (by design)
 

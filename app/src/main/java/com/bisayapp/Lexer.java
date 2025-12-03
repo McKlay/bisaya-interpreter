@@ -311,6 +311,7 @@ public class Lexer {
       case "[" -> escaped = "[";      // literal left bracket  
       case "]" -> escaped = "]";      // literal right bracket
       case "" -> escaped = "";        // empty string
+      case ":" -> escaped = ":";        // empty string
       default -> {
         // For Increment 1, only [[, ]], and [&] are allowed per specification
         ErrorReporter.error(line, col, "Invalid escape sequence: [" + code + "]. Only [[, ]], and [&] are supported.");
