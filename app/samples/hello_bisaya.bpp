@@ -1,7 +1,34 @@
-@@ this is a sample program in Bisaya++
-SUGOD
-  IPAKITA: "Hi, Bisaya++" & $
-  IPAKITA: "Bisaya++ Interpreter"
-KATAPUSAN
-@@ this is a sample program in Bisaya++
-
+SUGOD  
+MUGNA NUMERO hour, min, convertedHour
+DAWAT: hour, min
+ 
+KUNG (hour<0 O hour>23 O min<0 O min>59)  
+PUNDOK{ 
+	IPAKITA: "Invalid time."
+}
+KUNG WALA  
+PUNDOK{  
+	convertedHour = hour
+	KUNG (hour==0)  
+	PUNDOK{ 
+		convertedHour = 12
+            	IPAKITA: convertedHour & [:] & minute & "AM"
+        }
+        KUNG DILI(hour>0 UG hour<12)  
+	PUNDOK{ 
+		convertedHour = hour
+            	IPAKITA: convertedHour & [:] & minute & "AM"
+        }
+	KUNG DILI(hour==12)  
+	PUNDOK{ 
+		convertedHour = 12
+            	IPAKITA: convertedHour & [:] & minute & "PM"
+        }
+	KUNG WALA  
+	PUNDOK{ 
+		convertedHour = hour - 12
+            	IPAKITA: convertedHour & [:] & minute & "PM"
+        }
+ 
+}
+KATAPUSAN 
